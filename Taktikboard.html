@@ -27,6 +27,7 @@
   --court-bg:#f4eee2; --court-line:#7a6e54; --court-line-thin:#a0916f;
   --att:#ff8a00; --def:#3ec1ff; --tw:#5dd39e; --ball:#ffd166;
   --pen-run:#ff8a00; --pen-pass:#3ec1ff; --pen-shot:#ef476f;
+  --pen-free:#000000;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
@@ -68,11 +69,36 @@ button{font-family:inherit}
 .tb-pen.pen-pass{color:var(--pen-pass)}
 .tb-pen.pen-shot{color:var(--pen-shot)}
 .tb-pen.pen-erase{color:var(--muted)}
+.tb-pen.pen-free{color:var(--pen-free)}
 .tb-pen svg{width:18px;height:18px}
+
+/* Farbpalette für den freien Stift — als Popover unter dem Stift */
+.pen-palette{position:absolute;background:var(--bg-elevated);
+  border:1px solid var(--accent);border-radius:8px;padding:6px;
+  box-shadow:var(--shadow);z-index:55;
+  display:none;gap:4px;
+  top:50px;left:50%;transform:translateX(-50%)}
+.pen-palette.show{display:flex}
+.pp-color{width:32px;height:32px;border-radius:6px;border:2px solid var(--line);
+  cursor:pointer;padding:0;transition:transform 0.1s, border-color 0.1s}
+.pp-color:hover, .pp-color:active{transform:scale(1.08)}
+.pp-color.selected{border-color:var(--ink);box-shadow:0 0 0 2px var(--accent)}
 
 .main{display:grid;grid-template-columns:130px 1fr;height:100%;overflow:hidden}
 .bank{background:var(--bg-elevated);border-right:1px solid var(--line);
-  padding:10px 8px;overflow-y:auto;overflow-x:hidden}
+  padding:0;overflow:hidden;
+  display:flex;flex-direction:column;position:relative}
+.bank-scrollbtn{flex-shrink:0;background:var(--bg-elevated-2);
+  border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  color:var(--accent);cursor:pointer;padding:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:inherit;font-size:14px;font-weight:700;
+  touch-action:manipulation}
+.bank-scrollbtn:active{background:var(--accent);color:#fff}
+.bank-scrollbtn:disabled{opacity:0.3;cursor:default}
+.bank-scrollbtn svg{width:18px;height:18px}
+.bank-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 8px;
+  -webkit-overflow-scrolling:touch}
 .bank-section{margin-bottom:12px}
 .bank-section h4{margin:0 0 6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--accent);font-weight:700;padding-left:2px}
@@ -242,6 +268,18 @@ button{font-family:inherit}
       <button class="tb-pen pen-erase" id="penErase" aria-pressed="false" title="Linie löschen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21L3 17 14 6l4 4z"/><path d="M17 9l4 4"/></svg>
       </button>
+      <button class="tb-pen pen-free" id="penFree" aria-pressed="false" title="Freier Stift (Farbe wählen)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/></svg>
+      </button>
+    </div>
+
+    <!-- Farbpalette des freien Stifts (Popup unterhalb des Stift-Buttons) -->
+    <div class="pen-palette" id="penPalette" role="dialog" aria-label="Stiftfarbe">
+      <button class="pp-color" data-color="#000000" style="background:#000000" title="Schwarz"></button>
+      <button class="pp-color" data-color="#3da655" style="background:#3da655" title="Grün"></button>
+      <button class="pp-color" data-color="#1d4ed8" style="background:#1d4ed8" title="Dunkelblau"></button>
+      <button class="pp-color" data-color="#dc2626" style="background:#dc2626" title="Rot"></button>
+      <button class="pp-color" data-color="#facc15" style="background:#facc15" title="Gelb"></button>
     </div>
 
     <button class="tb-action" id="btnClearLines">Linien leeren</button>
@@ -262,11 +300,20 @@ button{font-family:inherit}
 
   <div class="main">
     <div class="bank" id="bank">
-      <div class="bank-section"><h4>Angriff</h4><div class="bank-grid" id="bankAtt"></div></div>
-      <div class="bank-section"><h4>Abwehr</h4><div class="bank-grid" id="bankDef"></div></div>
-      <div class="bank-section"><h4>Torwart</h4><div class="bank-grid single" id="bankTw"></div></div>
-      <div class="bank-section"><h4>Wechsel</h4><div class="bank-grid" id="bankSub"></div></div>
-      <div class="bank-section"><h4>Bälle</h4><div class="bank-grid" id="bankBall"></div></div>
+      <button class="bank-scrollbtn" id="bankUp" aria-label="Nach oben scrollen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+      </button>
+      <div class="bank-content" id="bankContent">
+        <div class="bank-section"><h4>Angriff</h4><div class="bank-grid" id="bankAtt"></div></div>
+        <div class="bank-section"><h4>Abwehr</h4><div class="bank-grid" id="bankDef"></div></div>
+        <div class="bank-section"><h4>Torwart</h4><div class="bank-grid single" id="bankTw"></div></div>
+        <div class="bank-section"><h4>Wechsel</h4><div class="bank-grid" id="bankSub"></div></div>
+        <div class="bank-section"><h4>Bälle</h4><div class="bank-grid" id="bankBall"></div></div>
+        <div class="bank-section"><h4>Material</h4><div class="bank-grid" id="bankMat"></div></div>
+      </div>
+      <button class="bank-scrollbtn" id="bankDown" aria-label="Nach unten scrollen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
     </div>
 
     <div class="board-wrap" id="boardWrap">
@@ -516,6 +563,7 @@ const POOL_DEF  = ["1","2","3","4","5","6"];
 const POOL_TW   = ["TW"];
 const POOL_SUB  = ["W1","W2","W3","W4","W5"];
 const POOL_BALL = ["B"];
+const POOL_MAT  = ["Hütchen","Pylon","Bank","Matte"];
 
 function tokenSvg(kind, label, opts){
   opts = opts || {};
@@ -552,6 +600,44 @@ function tokenSvg(kind, label, opts){
               <text y="${br*0.32}" text-anchor="middle" font-size="${br*0.62}"
                 fill="#1a1a1a" font-weight="700">Ball</text>`;
     }
+    case "huetchen": {
+      // Flaches rundes Hütchen: Halbellipse + Boden — Draufsicht
+      return `<ellipse cx="0" cy="0" rx="${r*0.9}" ry="${r*0.5}"
+                fill="#e85d2a" stroke="#7a2a0a" stroke-width="2"/>
+              <ellipse cx="0" cy="${-r*0.1}" rx="${r*0.45}" ry="${r*0.25}"
+                fill="#c44a1f" stroke="none"/>`;
+    }
+    case "pylon": {
+      // Aufrecht stehender Pylon: Dreieck mit Boden
+      return `<polygon points="0,${-r*0.85} ${r*0.55},${r*0.55} ${-r*0.55},${r*0.55}"
+                fill="#ff6b35" stroke="#7a2a0a" stroke-width="2"/>
+              <rect x="${-r*0.7}" y="${r*0.5}" width="${r*1.4}" height="${r*0.25}"
+                fill="#c44a1f" stroke="#7a2a0a" stroke-width="1.5" rx="2"/>
+              <!-- weißer Streifen für Wiedererkennbarkeit -->
+              <polygon points="${-r*0.28} ${-r*0.1} ${r*0.28} ${-r*0.1} ${r*0.35} ${r*0.15} ${-r*0.35} ${r*0.15}"
+                fill="#fff" opacity="0.85"/>`;
+    }
+    case "bank": {
+      // Lange Turnhallen-Bank: Rechteck mit Beinen — von der Seite gesehen
+      return `<rect x="${-r*1.4}" y="${-r*0.18}" width="${r*2.8}" height="${r*0.36}"
+                fill="#a87444" stroke="#3a2410" stroke-width="2" rx="3"/>
+              <rect x="${-r*1.2}" y="${r*0.18}" width="${r*0.18}" height="${r*0.5}"
+                fill="#3a2410"/>
+              <rect x="${r*1.02}" y="${r*0.18}" width="${r*0.18}" height="${r*0.5}"
+                fill="#3a2410"/>
+              <text y="${r*0.08}" text-anchor="middle" font-size="${r*0.32}"
+                fill="#3a2410" font-weight="700">BANK</text>`;
+    }
+    case "matte": {
+      // Turnmatte: liegendes Rechteck mit Textur-Andeutung
+      return `<rect x="${-r*1.3}" y="${-r*0.55}" width="${r*2.6}" height="${r*1.1}"
+                fill="#4a7ab8" stroke="#1a3055" stroke-width="2" rx="3"/>
+              <!-- innere Kontur als 'Textur' -->
+              <rect x="${-r*1.15}" y="${-r*0.4}" width="${r*2.3}" height="${r*0.8}"
+                fill="none" stroke="#7aa0d0" stroke-width="1" rx="2"/>
+              <text y="${r*0.12}" text-anchor="middle" font-size="${r*0.42}"
+                fill="#fff" font-weight="700" opacity="0.9">MATTE</text>`;
+    }
   }
   return "";
 }
@@ -572,6 +658,20 @@ function renderBank(){
   fill("bankTw",   "tw",   POOL_TW);
   fill("bankSub",  "sub",  POOL_SUB);
   fill("bankBall", "ball", POOL_BALL);
+
+  // Material: jedes Element hat eigenes kind, kein Label
+  const elMat = document.getElementById("bankMat");
+  if(elMat){
+    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Bank":"bank", "Matte":"matte"};
+    elMat.innerHTML = POOL_MAT.map(lab => {
+      const r = 30;
+      const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
+      const kind = KIND_FOR[lab];
+      return `<div class="bank-item" data-kind="${kind}" data-label="">
+        <svg viewBox="${vb}">${tokenSvg(kind, "")}</svg></div>`;
+    }).join("");
+  }
+
   document.querySelectorAll(".bank-item").forEach(it=>{
     it.addEventListener("pointerdown", onBankPointerDown);
   });
@@ -622,6 +722,9 @@ function makeLineEl(l){
     p.setAttribute("stroke-width","4");
     p.setAttribute("stroke-dasharray","12 8");
     p.setAttribute("marker-end","url(#arrPass)");
+  } else if(l.kind === "free"){
+    // freier Stift: durchgezogen, dünn, ohne Pfeilspitze
+    p.setAttribute("stroke-width","3");
   } else {
     p.setAttribute("stroke-width","4");
     p.setAttribute("marker-end","url(#arrRun)");
@@ -728,6 +831,8 @@ document.getElementById("board").addEventListener("dblclick",(ev)=>{
   const id = +target.dataset.id;
   const tok = STATE.tokens.find(t => t.id === id);
   if(!tok) return;
+  // Material-Symbole haben keine Beschriftung — Doppelklick ignorieren
+  if(["huetchen","pylon","bank","matte"].includes(tok.kind)) return;
   if(lastDoubleTokenId === id){
     oeffneLabelEditor(tok, target);
     lastDoubleTokenId = null;
@@ -833,22 +938,58 @@ document.getElementById("labelInput").addEventListener("keydown",(ev)=>{
 });
 
 /* MODES + STIFTE */
+let FREE_COLOR = "#000000";  // aktuell gewählte Farbe des freien Stifts
+
 function setMode(m){
   STATE.mode = m;
   document.getElementById("modeSelect").setAttribute("aria-pressed", m==="select");
-  ["penRun","penPass","penShot","penErase"].forEach(id=>{
+  ["penRun","penPass","penShot","penErase","penFree"].forEach(id=>{
     document.getElementById(id).setAttribute("aria-pressed","false");
   });
   if(m==="run")   document.getElementById("penRun").setAttribute("aria-pressed","true");
   if(m==="pass")  document.getElementById("penPass").setAttribute("aria-pressed","true");
   if(m==="shot")  document.getElementById("penShot").setAttribute("aria-pressed","true");
   if(m==="erase") document.getElementById("penErase").setAttribute("aria-pressed","true");
+  if(m==="free")  document.getElementById("penFree").setAttribute("aria-pressed","true");
+  // Palette schließen, wenn Modus ein anderer ist
+  if(m !== "free") document.getElementById("penPalette").classList.remove("show");
 }
 document.getElementById("modeSelect").addEventListener("click", ()=>setMode("select"));
 document.getElementById("penRun").addEventListener("click",   ()=>setMode(STATE.mode==="run"   ? "select" : "run"));
 document.getElementById("penPass").addEventListener("click",  ()=>setMode(STATE.mode==="pass"  ? "select" : "pass"));
 document.getElementById("penShot").addEventListener("click",  ()=>setMode(STATE.mode==="shot"  ? "select" : "shot"));
 document.getElementById("penErase").addEventListener("click", ()=>setMode(STATE.mode==="erase" ? "select" : "erase"));
+
+/* Freier Stift: Klick wechselt in den Modus UND öffnet die Farbpalette.
+   Erneuter Klick bei aktivem free-Modus schließt nur die Palette
+   (oder schaltet zurück, wenn Palette bereits geschlossen war). */
+document.getElementById("penFree").addEventListener("click", ()=>{
+  const pal = document.getElementById("penPalette");
+  if(STATE.mode === "free"){
+    if(pal.classList.contains("show")){
+      // Palette war offen → schließen, Modus bleibt
+      pal.classList.remove("show");
+    } else {
+      // Modus war an, Palette zu → Modus aus
+      setMode("select");
+    }
+  } else {
+    setMode("free");
+    pal.classList.add("show");
+  }
+});
+
+/* Farb-Klick: Farbe übernehmen, Palette schließen, Modus bleibt "free" */
+document.querySelectorAll(".pp-color").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    FREE_COLOR = btn.dataset.color;
+    document.documentElement.style.setProperty("--pen-free", FREE_COLOR);
+    document.querySelectorAll(".pp-color").forEach(b => b.classList.toggle("selected", b === btn));
+    document.getElementById("penPalette").classList.remove("show");
+  });
+});
+// Initiale Markierung: Schwarz ist vorausgewählt
+document.querySelector('.pp-color[data-color="#000000"]')?.classList.add("selected");
 
 /* STIFT-Zeichnen */
 let drawInfo = null;
@@ -859,6 +1000,7 @@ document.getElementById("board").addEventListener("pointerdown",(ev)=>{
   const pt = clientToSvg(ev.clientX, ev.clientY);
   const color = STATE.mode === "pass" ? "var(--pen-pass)"
               : STATE.mode === "shot" ? "var(--pen-shot)"
+              : STATE.mode === "free" ? FREE_COLOR
               : "var(--pen-run)";
   const line = { id: STATE.nextId++, kind: STATE.mode, color,
                  path: `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}` };
@@ -1571,6 +1713,28 @@ function inlineSvgColors(svg){
 renderBank();
 renderBoard();
 setMode("select");
+
+/* Bank-Scroll-Buttons: scrollen Inhalt um 120px je Tipp */
+(function bankScrollSetup(){
+  const content = document.getElementById("bankContent");
+  const btnUp = document.getElementById("bankUp");
+  const btnDown = document.getElementById("bankDown");
+  if(!content || !btnUp || !btnDown) return;
+  function updateButtons(){
+    btnUp.disabled = content.scrollTop <= 0;
+    btnDown.disabled = content.scrollTop + content.clientHeight >= content.scrollHeight - 1;
+  }
+  function scrollBy(delta){
+    content.scrollBy({top: delta, behavior:"smooth"});
+    // Buttons mit kurzer Verzögerung aktualisieren (nach smooth scroll)
+    setTimeout(updateButtons, 350);
+  }
+  btnUp.addEventListener("click", ()=>scrollBy(-120));
+  btnDown.addEventListener("click", ()=>scrollBy(120));
+  content.addEventListener("scroll", updateButtons);
+  // Initialzustand
+  setTimeout(updateButtons, 100);
+})();
 
 /* Preset-Dropdown aus PRESETS befüllen, gruppiert nach S-/T-Präfix */
 (function fillPresetDropdown(){
