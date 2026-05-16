@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MTV Handball">
+<meta name="theme-color" content="#0a0a0f">
+<title>MTV Schwarmstedt Handball — D-Jugend Tools</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;min-height:100vh;min-height:100dvh;
+  background:#0a0a0f;color:#e8eaed;
+  font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;line-height:1.5}
+
+.logo{max-width:min(280px, 60vw);width:100%;height:auto;
+  display:block;margin:0 auto 24px;
+  filter:drop-shadow(0 6px 24px rgba(255,138,0,0.15))}
+
+.subtitle{color:#9aa3b2;font-size:14px;letter-spacing:0.15em;
+  text-transform:uppercase;text-align:center;margin:0 0 32px;font-weight:500}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;width:100%;max-width:780px}
+
+.tile{background:linear-gradient(145deg,#1a1d28 0%,#13151c 100%);
+  border:1px solid #2a2f3a;border-radius:14px;padding:24px;
+  text-decoration:none;color:#e8eaed;
+  display:flex;flex-direction:column;gap:12px;
+  transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  position:relative;overflow:hidden}
+.tile:hover, .tile:active{transform:translateY(-2px);
+  border-color:#ff8a00;box-shadow:0 8px 24px rgba(255,138,0,0.18)}
+.tile::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#ff8a00,#3ec1ff)}
+
+.tile-icon{width:48px;height:48px;color:#ff8a00;flex-shrink:0}
+.tile h2{margin:0;font-size:19px;font-weight:700;color:#fff}
+.tile p{margin:0;font-size:14px;color:#9aa3b2;line-height:1.5}
+.tile .tile-meta{margin-top:auto;padding-top:12px;border-top:1px solid #2a2f3a;
+  font-size:12px;color:#6b7280;display:flex;justify-content:space-between;align-items:center}
+.tile .tile-meta .arrow{color:#ff8a00;font-weight:700}
+
+.footer{margin-top:32px;text-align:center;font-size:12px;color:#6b7280;
+  max-width:600px;padding:0 12px}
+.footer a{color:#9aa3b2;text-decoration:none}
+.footer a:hover{color:#ff8a00}
+
+@media (max-width: 600px){
+  body{padding:16px;justify-content:flex-start;padding-top:32px}
+  .logo{max-width:200px;margin-bottom:16px}
+  .subtitle{font-size:12px;margin-bottom:20px}
+  .tile{padding:18px}
+  .tile h2{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<img src="logo_mtv_schwarmstedt.jpg" alt="MTV Schwarmstedt Handball" class="logo">
+
+<p class="subtitle">D-Jugend männlich · Trainer-Tools</p>
+
+<div class="tiles">
+
+  <a href="UI_Modul_Browser_STANDALONE.html" class="tile">
+    <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 6h16M4 12h16M4 18h10"/>
+      <circle cx="20" cy="18" r="2.5" fill="currentColor"/>
+    </svg>
+    <h2>Trainingsplanung</h2>
+    <p>Modul-Browser mit 141 Übungen, Trainings­einheiten generieren und speichern, PDF-Export für Trainerblätter.</p>
+    <div class="tile-meta">
+      <span>Module · Generator · Meine Einheiten</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a href="Taktikboard.html" class="tile">
+    <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="1"/>
+      <path d="M2 12h20"/>
+      <circle cx="12" cy="12" r="2.2"/>
+      <path d="M2 8.5 A 3.5 3.5 0 0 1 5.5 12 A 3.5 3.5 0 0 1 2 15.5"/>
+      <path d="M22 8.5 A 3.5 3.5 0 0 0 18.5 12 A 3.5 3.5 0 0 0 22 15.5"/>
+    </svg>
+    <h2>Taktikboard</h2>
+    <p>Interaktives Spielfeld mit Drag & Drop, Stiften für Laufwege/Pässe/Würfe, 24 vorgefertigte Aufstellungen.</p>
+    <div class="tile-meta">
+      <span>Spielzüge · Aufstellungen · Konstellationen</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">
+  Beide Werkzeuge funktionieren komplett offline im Browser. Daten werden lokal auf diesem Gerät gespeichert.
+</div>
+
+</body>
+</html>
