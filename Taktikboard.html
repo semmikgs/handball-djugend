@@ -209,6 +209,15 @@ button{font-family:inherit}
 .save-card .sc-fields textarea{resize:vertical;min-height:50px}
 .save-card .sc-rowbtns{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 
+/* Auto-Save-Toast — kurz eingeblendete Bestätigung */
+.save-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#22aa55;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;
+  font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.3);z-index:200;
+  opacity:0;pointer-events:none;transition:opacity 0.25s, transform 0.25s;
+  display:flex;align-items:center;gap:8px}
+.save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.save-toast svg{width:14px;height:14px}
+
 .save-dialog{position:fixed;inset:0;background:var(--bg-overlay);z-index:70;
   display:none;align-items:center;justify-content:center;padding:20px}
 .save-dialog.show{display:flex}
@@ -328,7 +337,7 @@ button{font-family:inherit}
 
     <div class="tb-spacer"></div>
 
-    <button class="tb-action primary tb-icon-btn" id="btnOpenSave" title="Speichern / Laden">
+    <button class="tb-action primary tb-icon-btn" id="btnOpenSave" title="Konstellationen verwalten (speichern / laden)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
     </button>
     <button class="tb-action tb-icon-btn" id="btnPrint" title="Als PDF drucken">
@@ -379,7 +388,7 @@ button{font-family:inherit}
 <div class="save-overlay" id="saveOverlay"></div>
 <div class="save-panel" id="savePanel">
   <div class="save-head">
-    <h2>Gespeicherte Konstellationen</h2>
+    <h2>Konstellationen verwalten</h2>
     <button id="saveClose" aria-label="Schließen">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
@@ -1793,11 +1802,6 @@ function attachSaveCardListeners(){
       if(ev.target.closest(".sc-actions")) return;
       card.classList.toggle("open");
     });
-    // Lade-Button (oben rechts)
-    card.querySelector(".sc-load-btn")?.addEventListener("click", (ev)=>{
-      ev.stopPropagation();
-      ladeKonstellation(id);
-    });
     // Lade-Button (groß, unten)
     card.querySelector(".sc-load-big")?.addEventListener("click", (ev)=>{
       ev.stopPropagation();
@@ -1856,9 +1860,6 @@ function saveCardHtml(k){
       </div>
       <div class="sc-actions">
         <div class="sc-stars" title="Bewertung">${sterne}</div>
-        <button class="icon-btn sc-load-btn" title="Laden">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>
         <button class="icon-btn danger sc-delete-btn" title="Löschen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
@@ -1887,11 +1888,23 @@ function saveCardHtml(k){
   </div>`;
 }
 
+/* Auto-Save-Toast — kurze Bestätigung dass eine Änderung gespeichert wurde */
+let toastTimer = null;
+function showSaveToast(text){
+  const el = document.getElementById("saveToast");
+  if(!el) return;
+  document.getElementById("saveToastText").textContent = text || "Gespeichert";
+  el.classList.add("show");
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.classList.remove("show"); }, 1400);
+}
+
 window.setKonstRating = function(id, n){
   const list = ladeAlle();
   const k = list.find(x=>x.id===id); if(!k) return;
   k.rating = (k.rating === n) ? 0 : n;
   speichereAlle(list); renderSaveList();
+  showSaveToast("Bewertung gespeichert");
 };
 window.setKonstFeld = function(id, feld, val){
   const list = ladeAlle();
@@ -1899,6 +1912,7 @@ window.setKonstFeld = function(id, feld, val){
   k[feld] = val;
   speichereAlle(list);
   if(feld === "name" || feld === "plan_datum") renderSaveList();
+  showSaveToast("Gespeichert");
 };
 window.ladeKonstellation = function(id){
   const list = ladeAlle();
@@ -2090,5 +2104,9 @@ setMode("select");
   addGroup("Trainingssituationen", tKeys);
 })();
 </script>
+<div class="save-toast" id="saveToast" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg>
+  <span id="saveToastText">Gespeichert</span>
+</div>
 </body>
 </html>
