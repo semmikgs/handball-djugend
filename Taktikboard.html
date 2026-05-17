@@ -38,7 +38,8 @@ button{font-family:inherit}
 .app{display:grid;grid-template-rows:auto 1fr;height:100vh;height:100dvh}
 
 .toolbar{display:flex;align-items:center;gap:10px;padding:8px 12px;
-  background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:20}
+  background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:20;
+  touch-action:manipulation}
 .tb-title{font-weight:700;font-size:14px;color:var(--accent);letter-spacing:.02em;margin-right:6px}
 .tb-group{display:flex;align-items:center;gap:4px;padding:3px;
   background:var(--bg-elevated);border:1px solid var(--line);border-radius:8px}
@@ -69,22 +70,30 @@ button{font-family:inherit}
 .tb-pen.pen-pass{color:var(--pen-pass)}
 .tb-pen.pen-shot{color:var(--pen-shot)}
 .tb-pen.pen-erase{color:var(--muted)}
-.tb-pen.pen-free{color:var(--pen-free)}
+.tb-pen.pen-free{color:#c8ccd4}
+.tb-pen.pen-free[aria-pressed="true"]{color:#ff8a00}
 .tb-pen svg{width:18px;height:18px}
 
-/* Farbpalette für den freien Stift — als Popover unter dem Stift */
+/* Farbpalette + Strichstärke für den freien Stift */
 .pen-palette{position:absolute;background:var(--bg-elevated);
   border:1px solid var(--accent);border-radius:8px;padding:6px;
   box-shadow:var(--shadow);z-index:55;
-  display:none;gap:4px;
+  display:none;flex-direction:column;gap:6px;
   top:50px;left:50%;transform:translateX(-50%)}
 .pen-palette.show{display:flex}
+.pp-row{display:flex;gap:4px}
+.pp-sizes{padding-top:5px;border-top:1px solid var(--line)}
 .pp-color{width:32px;height:32px;border-radius:6px;border:2px solid var(--line);
   cursor:pointer;padding:0;transition:transform 0.1s, border-color 0.1s}
 .pp-color:hover, .pp-color:active{transform:scale(1.08)}
 .pp-color.selected{border-color:var(--ink);box-shadow:0 0 0 2px var(--accent)}
+.pp-size{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:6px;
+  color:var(--ink);cursor:pointer;padding:5px;display:flex;align-items:center;justify-content:center}
+.pp-size svg{width:30px;height:12px}
+.pp-size.selected{border-color:var(--accent);background:var(--bg-elevated-2);box-shadow:0 0 0 2px var(--accent) inset}
+.pp-size:hover{border-color:var(--accent)}
 
-.main{display:grid;grid-template-columns:130px 1fr;height:100%;overflow:hidden}
+.main{display:grid;grid-template-columns:150px 1fr;height:100%;overflow:hidden}
 .bank{background:var(--bg-elevated);border-right:1px solid var(--line);
   padding:0;overflow:hidden;
   display:flex;flex-direction:column;position:relative}
@@ -99,8 +108,9 @@ button{font-family:inherit}
 .bank-scrollbtn svg{width:18px;height:18px}
 .bank-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 8px;
   -webkit-overflow-scrolling:touch}
-.bank-section{margin-bottom:12px}
-.bank-section h4{margin:0 0 6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+.bank-section{margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.bank-section:last-child{border-bottom:0;margin-bottom:0}
+.bank-section h4{margin:0 0 8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--accent);font-weight:700;padding-left:2px}
 .bank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
 .bank-grid.single{grid-template-columns:1fr}
@@ -248,6 +258,11 @@ button{font-family:inherit}
 
     <div class="tb-sep"></div>
 
+    <button class="tb-action" id="btnUndo" title="Rückgängig (bis 3 Schritte)" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-3"/></svg>
+      Zurück
+    </button>
+
     <div class="tb-group" role="group" aria-label="Werkzeug">
       <button class="tb-btn tb-btn-mode" id="modeSelect" aria-pressed="true" title="Verschieben">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7 17 2-7 7-2L3 3z"/></svg>
@@ -269,17 +284,24 @@ button{font-family:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21L3 17 14 6l4 4z"/><path d="M17 9l4 4"/></svg>
       </button>
       <button class="tb-pen pen-free" id="penFree" aria-pressed="false" title="Freier Stift (Farbe wählen)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l3.5-1 11-11-2.5-2.5-11 11L3 21z"/><path d="M14 6l3-3 3 3-3 3"/></svg>
       </button>
     </div>
 
-    <!-- Farbpalette des freien Stifts (Popup unterhalb des Stift-Buttons) -->
+    <!-- Farbpalette + Strichstärke (Popup unterhalb des Stift-Buttons) -->
     <div class="pen-palette" id="penPalette" role="dialog" aria-label="Stiftfarbe">
-      <button class="pp-color" data-color="#000000" style="background:#000000" title="Schwarz"></button>
-      <button class="pp-color" data-color="#3da655" style="background:#3da655" title="Grün"></button>
-      <button class="pp-color" data-color="#1d4ed8" style="background:#1d4ed8" title="Dunkelblau"></button>
-      <button class="pp-color" data-color="#dc2626" style="background:#dc2626" title="Rot"></button>
-      <button class="pp-color" data-color="#facc15" style="background:#facc15" title="Gelb"></button>
+      <div class="pp-row">
+        <button class="pp-color" data-color="#000000" style="background:#000000" title="Schwarz"></button>
+        <button class="pp-color" data-color="#3da655" style="background:#3da655" title="Grün"></button>
+        <button class="pp-color" data-color="#1d4ed8" style="background:#1d4ed8" title="Dunkelblau"></button>
+        <button class="pp-color" data-color="#dc2626" style="background:#dc2626" title="Rot"></button>
+        <button class="pp-color" data-color="#facc15" style="background:#facc15" title="Gelb"></button>
+      </div>
+      <div class="pp-row pp-sizes">
+        <button class="pp-size" data-size="2" title="Dünn"><svg viewBox="0 0 32 12"><line x1="2" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button class="pp-size selected" data-size="3" title="Mittel"><svg viewBox="0 0 32 12"><line x1="2" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+        <button class="pp-size" data-size="5" title="Dick"><svg viewBox="0 0 32 12"><line x1="2" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></button>
+      </div>
     </div>
 
     <button class="tb-action" id="btnClearLines">Linien leeren</button>
@@ -306,7 +328,7 @@ button{font-family:inherit}
       <div class="bank-content" id="bankContent">
         <div class="bank-section"><h4>Angriff</h4><div class="bank-grid" id="bankAtt"></div></div>
         <div class="bank-section"><h4>Abwehr</h4><div class="bank-grid" id="bankDef"></div></div>
-        <div class="bank-section"><h4>Torwart</h4><div class="bank-grid single" id="bankTw"></div></div>
+        <div class="bank-section"><h4>Torwart / Helfer</h4><div class="bank-grid" id="bankTwTh"></div></div>
         <div class="bank-section"><h4>Wechsel</h4><div class="bank-grid" id="bankSub"></div></div>
         <div class="bank-section"><h4>Bälle</h4><div class="bank-grid" id="bankBall"></div></div>
         <div class="bank-section"><h4>Material</h4><div class="bank-grid" id="bankMat"></div></div>
@@ -390,7 +412,36 @@ document.getElementById("thLight").addEventListener("click", ()=>setTheme("light
 })();
 
 /* ZUSTAND */
-const STATE = { tokens:[], lines:[], mode:"select", schnitt:"angriff_oben", nextId:1 };
+const STATE = { tokens:[], lines:[], mode:"select", schnitt:"angriff_oben", nextId:1, history:[] };
+
+/* History für Undo (max. 3 Schritte zurück) */
+function pushHistory(){
+  // Snapshot vor jeder verändernden Aktion
+  const snap = {
+    tokens: STATE.tokens.map(t => Object.assign({}, t)),
+    lines:  STATE.lines.map(l => Object.assign({}, l)),
+    schnitt: STATE.schnitt
+  };
+  STATE.history.push(snap);
+  while(STATE.history.length > 3) STATE.history.shift();
+  updateUndoBtn();
+}
+function undo(){
+  if(!STATE.history.length) return;
+  const snap = STATE.history.pop();
+  STATE.tokens = snap.tokens;
+  STATE.lines  = snap.lines;
+  if(snap.schnitt !== STATE.schnitt){
+    STATE.schnitt = snap.schnitt;
+    document.getElementById("selAusschnitt").value = snap.schnitt;
+  }
+  renderBoard();
+  updateUndoBtn();
+}
+function updateUndoBtn(){
+  const btn = document.getElementById("btnUndo");
+  if(btn) btn.disabled = STATE.history.length === 0;
+}
 
 /* AUSSCHNITTE */
 const AUSSCHNITTE = {
@@ -561,6 +612,7 @@ const AUSSCHNITTE = {
 const POOL_ATT  = ["LA","RA","RL","RR","RM","KM"];
 const POOL_DEF  = ["1","2","3","4","5","6"];
 const POOL_TW   = ["TW"];
+const POOL_TH   = ["TH"];   // Trainingshelfer
 const POOL_SUB  = ["W1","W2","W3","W4","W5"];
 const POOL_BALL = ["B"];
 const POOL_MAT  = ["Hütchen","Pylon","Bank","Matte"];
@@ -601,11 +653,14 @@ function tokenSvg(kind, label, opts){
                 fill="#1a1a1a" font-weight="700">Ball</text>`;
     }
     case "huetchen": {
-      // Flaches rundes Hütchen: Halbellipse + Boden — Draufsicht
+      // Flaches rundes Hütchen, Farbe variabel (Default: Rot)
+      const c   = opts.color || "#e85d2a";
+      const cd  = opts.colorDark || "#7a2a0a";   // dunkle Variante für Innenkreis
+      // Auto: dunkler Innenfarbe — wir nehmen einfach 30% Schwärzung
       return `<ellipse cx="0" cy="0" rx="${r*0.9}" ry="${r*0.5}"
-                fill="#e85d2a" stroke="#7a2a0a" stroke-width="2"/>
+                fill="${c}" stroke="${cd}" stroke-width="2"/>
               <ellipse cx="0" cy="${-r*0.1}" rx="${r*0.45}" ry="${r*0.25}"
-                fill="#c44a1f" stroke="none"/>`;
+                fill="${cd}" stroke="none" opacity="0.55"/>`;
     }
     case "pylon": {
       // Aufrecht stehender Pylon: Dreieck mit Boden
@@ -618,25 +673,31 @@ function tokenSvg(kind, label, opts){
                 fill="#fff" opacity="0.85"/>`;
     }
     case "bank": {
-      // Lange Turnhallen-Bank: Rechteck mit Beinen — von der Seite gesehen
-      return `<rect x="${-r*1.4}" y="${-r*0.18}" width="${r*2.8}" height="${r*0.36}"
+      // Lange Turnhallen-Bank: ca. 4r breit (doppelt so lang wie Matte)
+      return `<rect x="${-r*2.0}" y="${-r*0.22}" width="${r*4.0}" height="${r*0.44}"
                 fill="#a87444" stroke="#3a2410" stroke-width="2" rx="3"/>
-              <rect x="${-r*1.2}" y="${r*0.18}" width="${r*0.18}" height="${r*0.5}"
+              <rect x="${-r*1.75}" y="${r*0.22}" width="${r*0.2}" height="${r*0.55}"
                 fill="#3a2410"/>
-              <rect x="${r*1.02}" y="${r*0.18}" width="${r*0.18}" height="${r*0.5}"
+              <rect x="${r*1.55}" y="${r*0.22}" width="${r*0.2}" height="${r*0.55}"
                 fill="#3a2410"/>
-              <text y="${r*0.08}" text-anchor="middle" font-size="${r*0.32}"
+              <text y="${r*0.10}" text-anchor="middle" font-size="${r*0.36}"
                 fill="#3a2410" font-weight="700">BANK</text>`;
     }
     case "matte": {
-      // Turnmatte: liegendes Rechteck mit Textur-Andeutung
-      return `<rect x="${-r*1.3}" y="${-r*0.55}" width="${r*2.6}" height="${r*1.1}"
+      // Turnmatte: ca. 2r breit (halb so lang wie Bank), 1,2r hoch
+      return `<rect x="${-r*1.0}" y="${-r*0.6}" width="${r*2.0}" height="${r*1.2}"
                 fill="#4a7ab8" stroke="#1a3055" stroke-width="2" rx="3"/>
-              <!-- innere Kontur als 'Textur' -->
-              <rect x="${-r*1.15}" y="${-r*0.4}" width="${r*2.3}" height="${r*0.8}"
+              <rect x="${-r*0.85}" y="${-r*0.45}" width="${r*1.7}" height="${r*0.9}"
                 fill="none" stroke="#7aa0d0" stroke-width="1" rx="2"/>
               <text y="${r*0.12}" text-anchor="middle" font-size="${r*0.42}"
                 fill="#fff" font-weight="700" opacity="0.9">MATTE</text>`;
+    }
+    case "th": {
+      // Trainingshelfer: grünes Quadrat mit "TH"
+      return `<rect x="${-r*0.85}" y="${-r*0.85}" width="${r*1.7}" height="${r*1.7}"
+                fill="#3da655" stroke="#1a4a26" stroke-width="2" rx="4"/>
+              <text y="${r*0.32}" text-anchor="middle" font-size="${r*0.85}"
+                fill="#fff" font-weight="700">TH</text>`;
     }
   }
   return "";
@@ -655,7 +716,15 @@ function renderBank(){
   }
   fill("bankAtt",  "att",  POOL_ATT);
   fill("bankDef",  "def",  POOL_DEF);
-  fill("bankTw",   "tw",   POOL_TW);
+  // TW und TH gemeinsam in eine Grid-Zelle
+  const elTwTh = document.getElementById("bankTwTh");
+  if(elTwTh){
+    const r = 30;
+    const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
+    elTwTh.innerHTML =
+      `<div class="bank-item" data-kind="tw" data-label="TW"><svg viewBox="${vb}">${tokenSvg("tw","TW")}</svg></div>`
+    + `<div class="bank-item" data-kind="th" data-label=""><svg viewBox="${vb}">${tokenSvg("th","")}</svg></div>`;
+  }
   fill("bankSub",  "sub",  POOL_SUB);
   fill("bankBall", "ball", POOL_BALL);
 
@@ -700,9 +769,15 @@ function renderBoard(){
 function makeTokenEl(t){
   const g = document.createElementNS("http://www.w3.org/2000/svg","g");
   g.setAttribute("class","tb-token");
-  g.setAttribute("transform", `translate(${t.x} ${t.y})`);
+  // Rotation um den Token-Mittelpunkt (nach Translation), nur sinnvoll bei Bank/Matte
+  const rot = t.rotation || 0;
+  if(rot){
+    g.setAttribute("transform", `translate(${t.x} ${t.y}) rotate(${rot})`);
+  } else {
+    g.setAttribute("transform", `translate(${t.x} ${t.y})`);
+  }
   g.setAttribute("data-id", t.id);
-  g.innerHTML = tokenSvg(t.kind, t.label);
+  g.innerHTML = tokenSvg(t.kind, t.label, {color: t.color, colorDark: t.colorDark});
   g.addEventListener("pointerdown", onTokenPointerDown);
   return g;
 }
@@ -723,8 +798,8 @@ function makeLineEl(l){
     p.setAttribute("stroke-dasharray","12 8");
     p.setAttribute("marker-end","url(#arrPass)");
   } else if(l.kind === "free"){
-    // freier Stift: durchgezogen, dünn, ohne Pfeilspitze
-    p.setAttribute("stroke-width","3");
+    // freier Stift: durchgezogen, gewählte Strichstärke (Default 3), ohne Pfeilspitze
+    p.setAttribute("stroke-width", String(l.width || 3));
   } else {
     p.setAttribute("stroke-width","4");
     p.setAttribute("marker-end","url(#arrRun)");
@@ -747,6 +822,7 @@ function onBankPointerDown(ev){
   const item = ev.currentTarget;
   const kind  = item.dataset.kind;
   const label = item.dataset.label;
+  pushHistory();
   const tok = { id: STATE.nextId++, kind, label, labelMode:"position", x:100, y:100 };
   STATE.tokens.push(tok);
   renderBoard();
@@ -770,6 +846,7 @@ function onTokenPointerDown(ev){
   const id = +el.dataset.id;
   const tok = STATE.tokens.find(t => t.id === id);
   if(!tok) return;
+  pushHistory();   // Snapshot vor Verschiebung (oder Lösch-Drag)
   const pt = clientToSvg(ev.clientX, ev.clientY);
   dragInfo = { tokenId:id, offsetX:pt.x - tok.x, offsetY:pt.y - tok.y,
                pointerId:ev.pointerId, el, isNew:false,
@@ -791,7 +868,9 @@ function onTokenPointerMove(ev){
   if(!tok) return;
   tok.x = pt.x - (dragInfo.offsetX||0);
   tok.y = pt.y - (dragInfo.offsetY||0);
-  dragInfo.el.setAttribute("transform", `translate(${tok.x} ${tok.y})`);
+  const rot = tok.rotation || 0;
+  dragInfo.el.setAttribute("transform",
+    rot ? `translate(${tok.x} ${tok.y}) rotate(${rot})` : `translate(${tok.x} ${tok.y})`);
 }
 
 function onTokenPointerUp(ev){
@@ -825,19 +904,50 @@ function clientToSvg(clientX, clientY){
 /* DOPPELKLICK */
 let lastDoubleTokenId = null;
 document.getElementById("board").addEventListener("dblclick",(ev)=>{
+  ev.preventDefault();  // iOS-Doppeltap-Zoom unterdrücken
   const target = ev.target.closest(".tb-token");
   if(!target) return;
   ev.stopPropagation();
   const id = +target.dataset.id;
   const tok = STATE.tokens.find(t => t.id === id);
   if(!tok) return;
-  // Material-Symbole haben keine Beschriftung — Doppelklick ignorieren
-  if(["huetchen","pylon","bank","matte"].includes(tok.kind)) return;
+
+  // Bank/Matte: 22,5° rechtsherum drehen
+  if(tok.kind === "bank" || tok.kind === "matte"){
+    pushHistory();
+    tok.rotation = ((tok.rotation || 0) + 22.5) % 360;
+    renderBoard();
+    return;
+  }
+
+  // Hütchen: Farbe durchschalten (Rot → Gelb → Grün → Blau → Rot)
+  if(tok.kind === "huetchen"){
+    const COLORS = [
+      {color:"#e85d2a", dark:"#7a2a0a"},   // Rot
+      {color:"#facc15", dark:"#854d0e"},   // Gelb
+      {color:"#22c55e", dark:"#14532d"},   // Grün
+      {color:"#3b82f6", dark:"#1e3a8a"}    // Blau
+    ];
+    let idx = COLORS.findIndex(c => c.color === tok.color);
+    if(idx === -1) idx = 0;
+    idx = (idx + 1) % COLORS.length;
+    pushHistory();
+    tok.color = COLORS[idx].color;
+    tok.colorDark = COLORS[idx].dark;
+    renderBoard();
+    return;
+  }
+
+  // Andere Material-Symbole: keine Doppelklick-Aktion
+  if(["pylon","th"].includes(tok.kind)) return;
+
+  // Spieler: erst Position↔Nummer, dann Editor
   if(lastDoubleTokenId === id){
     oeffneLabelEditor(tok, target);
     lastDoubleTokenId = null;
     return;
   }
+  pushHistory();
   toggleLabelMode(tok);
   renderBoard();
   lastDoubleTokenId = id;
@@ -894,8 +1004,8 @@ function oeffneLabelEditor(tok, tokenEl){
       const val = btn.dataset.val;
       const t = STATE.tokens.find(x => x.id === +edit.dataset.tokenId);
       if(t){
+        pushHistory();
         t.label = val;
-        // labelMode anhand des gewählten Werts setzen, damit Toggle weiterhin sinnvoll funktioniert
         t.labelMode = /^[0-9]+$/.test(val) ? "number" : "position";
         renderBoard();
       }
@@ -919,6 +1029,7 @@ document.getElementById("lblSave").addEventListener("click", ()=>{
   const id = +edit.dataset.tokenId;
   const tok = STATE.tokens.find(t => t.id === id);
   if(tok){
+    pushHistory();
     tok.label = document.getElementById("labelInput").value.trim() || tok.label;
     tok.labelMode = "custom";
     renderBoard();
@@ -928,6 +1039,7 @@ document.getElementById("lblSave").addEventListener("click", ()=>{
 document.getElementById("lblRemove").addEventListener("click", ()=>{
   const edit = document.getElementById("labelEdit");
   const id = +edit.dataset.tokenId;
+  pushHistory();
   STATE.tokens = STATE.tokens.filter(t => t.id !== id);
   renderBoard();
   edit.classList.remove("show");
@@ -939,6 +1051,7 @@ document.getElementById("labelInput").addEventListener("keydown",(ev)=>{
 
 /* MODES + STIFTE */
 let FREE_COLOR = "#000000";  // aktuell gewählte Farbe des freien Stifts
+let FREE_WIDTH = 3;          // aktuell gewählte Strichstärke
 
 function setMode(m){
   STATE.mode = m;
@@ -985,31 +1098,60 @@ document.querySelectorAll(".pp-color").forEach(btn => {
     FREE_COLOR = btn.dataset.color;
     document.documentElement.style.setProperty("--pen-free", FREE_COLOR);
     document.querySelectorAll(".pp-color").forEach(b => b.classList.toggle("selected", b === btn));
-    document.getElementById("penPalette").classList.remove("show");
+    // Palette nicht sofort schließen — User kann noch Strichstärke wählen
   });
 });
 // Initiale Markierung: Schwarz ist vorausgewählt
 document.querySelector('.pp-color[data-color="#000000"]')?.classList.add("selected");
 
+/* Strichstärke-Klick: Wert übernehmen, NICHT die Palette schließen */
+document.querySelectorAll(".pp-size").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    FREE_WIDTH = parseFloat(btn.dataset.size);
+    document.querySelectorAll(".pp-size").forEach(b => b.classList.toggle("selected", b === btn));
+  });
+});
+
 /* STIFT-Zeichnen */
 let drawInfo = null;
+let eraseActive = false;  // Pointer ist im Radier-Modus gedrückt
+
 document.getElementById("board").addEventListener("pointerdown",(ev)=>{
-  if(STATE.mode === "select" || STATE.mode === "erase") return;
+  if(STATE.mode === "select") return;
   if(ev.target.closest(".tb-token")) return;
+
+  // RADIERER: Snapshot, dann Linie unter Cursor löschen, Streich-Modus starten
+  if(STATE.mode === "erase"){
+    ev.preventDefault();
+    pushHistory();
+    eraseLineAt(ev.clientX, ev.clientY);
+    eraseActive = true;
+    try{ document.getElementById("board").setPointerCapture(ev.pointerId); }catch(e){}
+    return;
+  }
+
   ev.preventDefault();
+  pushHistory();   // Snapshot vor neuer Linie
   const pt = clientToSvg(ev.clientX, ev.clientY);
   const color = STATE.mode === "pass" ? "var(--pen-pass)"
               : STATE.mode === "shot" ? "var(--pen-shot)"
               : STATE.mode === "free" ? FREE_COLOR
               : "var(--pen-run)";
   const line = { id: STATE.nextId++, kind: STATE.mode, color,
+                 width: (STATE.mode === "free") ? FREE_WIDTH : undefined,
                  path: `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}` };
   STATE.lines.push(line);
   drawInfo = { lineId: line.id, pointerId: ev.pointerId, lastPt: pt };
   try{ document.getElementById("board").setPointerCapture(ev.pointerId); }catch(e){}
   renderBoard();
 });
+
 document.getElementById("board").addEventListener("pointermove",(ev)=>{
+  // Radierer: Streichen löscht jede berührte Linie
+  if(STATE.mode === "erase" && eraseActive){
+    eraseLineAt(ev.clientX, ev.clientY);
+    return;
+  }
   if(!drawInfo || ev.pointerId !== drawInfo.pointerId) return;
   const pt = clientToSvg(ev.clientX, ev.clientY);
   const dx = pt.x - drawInfo.lastPt.x, dy = pt.y - drawInfo.lastPt.y;
@@ -1021,7 +1163,13 @@ document.getElementById("board").addEventListener("pointermove",(ev)=>{
   const pathEl = document.querySelector(`#lines [data-id="${line.id}"]`);
   if(pathEl) pathEl.setAttribute("d", line.path);
 });
+
 document.getElementById("board").addEventListener("pointerup",(ev)=>{
+  if(STATE.mode === "erase"){
+    eraseActive = false;
+    try{ document.getElementById("board").releasePointerCapture(ev.pointerId); }catch(e){}
+    return;
+  }
   if(!drawInfo || ev.pointerId !== drawInfo.pointerId) return;
   try{ document.getElementById("board").releasePointerCapture(ev.pointerId); }catch(e){}
   const line = STATE.lines.find(l => l.id === drawInfo.lineId);
@@ -1032,11 +1180,30 @@ document.getElementById("board").addEventListener("pointerup",(ev)=>{
   drawInfo = null;
 });
 
+/* Hilfsfunktion: löscht jede Linie, deren Pfad-Element unter dem Cursor liegt */
+function eraseLineAt(clientX, clientY){
+  // elementsFromPoint gibt alle Elemente unter dem Punkt zurück (auch unter Tokens)
+  const elements = document.elementsFromPoint ? document.elementsFromPoint(clientX, clientY) : [document.elementFromPoint(clientX, clientY)];
+  const toRemove = new Set();
+  for(const el of elements){
+    if(el && el.tagName === "path" && el.parentElement && el.parentElement.id === "lines"){
+      const lid = +el.getAttribute("data-id");
+      if(lid) toRemove.add(lid);
+    }
+  }
+  if(toRemove.size === 0) return;
+  STATE.lines = STATE.lines.filter(l => !toRemove.has(l.id));
+  renderBoard();
+}
+
 /* AUSSCHNITT */
 document.getElementById("selAusschnitt").addEventListener("change",(ev)=>{
   STATE.schnitt = ev.target.value;
   renderBoard();
 });
+
+/* UNDO */
+document.getElementById("btnUndo").addEventListener("click", undo);
 
 /* PRESETS */
 const PRESETS = {
@@ -1414,6 +1581,7 @@ document.getElementById("selPreset").addEventListener("change",(ev)=>{
      !confirm("Aktuelles Board wird durch die Aufstellung ersetzt. Fortfahren?")){
     ev.target.value = ""; return;
   }
+  pushHistory();
   STATE.schnitt = p.schnitt;
   document.getElementById("selAusschnitt").value = p.schnitt;
   STATE.tokens = p.tokens.map(t => Object.assign({}, t, {id:STATE.nextId++, labelMode:"position"}));
@@ -1425,11 +1593,15 @@ document.getElementById("selPreset").addEventListener("change",(ev)=>{
 /* CLEAR */
 document.getElementById("btnClearLines").addEventListener("click", ()=>{
   if(!STATE.lines.length) return;
-  if(confirm("Alle gezeichneten Linien löschen?")){ STATE.lines = []; renderBoard(); }
+  if(confirm("Alle gezeichneten Linien löschen?")){
+    pushHistory();
+    STATE.lines = []; renderBoard();
+  }
 });
 document.getElementById("btnClearAll").addEventListener("click", ()=>{
   if(!STATE.tokens.length && !STATE.lines.length) return;
   if(confirm("Komplettes Board leeren?")){
+    pushHistory();
     STATE.tokens = []; STATE.lines = []; renderBoard();
   }
 });
