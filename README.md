@@ -4,12 +4,12 @@ Internes Werkzeug für die Trainingsplanung und Taktikbesprechung der männliche
 
 ## Live-Version
 
-→ **[mtv-handball.github.io/handball-djugend/](#)** (URL nach Setup einsetzen)
+→ **https://semmikgs.github.io/handball-djugend/**
 
 ## Werkzeuge
 
 - **Trainingsplanung** — Modul-Browser, Generator, Meine Einheiten, PDF-Export
-- **Taktikboard** — Spielfeld mit Drag & Drop, Stiften, 24 vorgefertigten Aufstellungen
+- **Taktikboard** — Spielfeld mit Drag & Drop, Stiften, 24 vorgefertigten Aufstellungen, Ex-, Import und PDF Druckoptionen
 
 ## Lokale Nutzung
 
