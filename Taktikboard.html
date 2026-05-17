@@ -38,8 +38,7 @@ button{font-family:inherit}
 .app{display:grid;grid-template-rows:auto 1fr;height:100vh;height:100dvh}
 
 .toolbar{display:flex;align-items:center;gap:10px;padding:8px 12px;
-  background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:20;
-  touch-action:manipulation}
+  background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:20}
 .tb-title{font-weight:700;font-size:14px;color:var(--accent);letter-spacing:.02em;margin-right:6px}
 .tb-group{display:flex;align-items:center;gap:4px;padding:3px;
   background:var(--bg-elevated);border:1px solid var(--line);border-radius:8px}
@@ -48,6 +47,10 @@ button{font-family:inherit}
   white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
 .tb-btn:hover{color:var(--ink)}
 .tb-btn[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+/* Verschieben-Button: nur SVG, kompakt */
+.tb-btn-mode{padding:6px;width:32px;height:30px;justify-content:center}
+.tb-btn-mode svg{width:16px;height:16px}
 .tb-btn svg{width:14px;height:14px}
 .tb-sep{width:1px;height:24px;background:var(--line);margin:0 4px}
 .tb-select{background:var(--bg-elevated);border:1px solid var(--line);
@@ -61,6 +64,15 @@ button{font-family:inherit}
 .tb-action:hover{border-color:var(--accent);color:var(--accent)}
 .tb-action.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .tb-action.primary:hover{filter:brightness(1.08);color:#fff}
+
+/* Reine Icon-Buttons (Diskette, PDF) */
+.tb-icon-btn{padding:6px;width:34px;height:30px;display:inline-flex;
+  align-items:center;justify-content:center}
+.tb-icon-btn svg{width:16px;height:16px}
+
+/* Icon + Text-Buttons (Linien/Board leeren) */
+.tb-icon-txt{display:inline-flex;align-items:center;gap:5px;padding:6px 10px}
+.tb-icon-txt svg{width:14px;height:14px;flex-shrink:0}
 
 .tb-pen{width:34px;height:30px;padding:0;display:flex;align-items:center;
   justify-content:center;background:transparent;border:0;cursor:pointer;border-radius:6px}
@@ -101,22 +113,22 @@ button{font-family:inherit}
   border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   color:var(--accent);cursor:pointer;padding:6px;
   display:flex;align-items:center;justify-content:center;
-  font-family:inherit;font-size:14px;font-weight:700;
-  touch-action:manipulation}
+  font-family:inherit;font-size:14px;font-weight:700}
 .bank-scrollbtn:active{background:var(--accent);color:#fff}
 .bank-scrollbtn:disabled{opacity:0.3;cursor:default}
 .bank-scrollbtn svg{width:18px;height:18px}
-.bank-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 8px;
+.bank-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 6px;
   -webkit-overflow-scrolling:touch}
 .bank-section{margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .bank-section:last-child{border-bottom:0;margin-bottom:0}
 .bank-section h4{margin:0 0 8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--accent);font-weight:700;padding-left:2px}
-.bank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.bank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
 .bank-grid.single{grid-template-columns:1fr}
-.bank-item{background:var(--bg);border:1px solid var(--line);border-radius:8px;
-  padding:4px;display:flex;align-items:center;justify-content:center;cursor:grab;
-  aspect-ratio:1;touch-action:none}
+.bank-item{background:var(--bg);border:1px solid var(--line);border-radius:6px;
+  padding:3px;display:flex;align-items:center;justify-content:center;cursor:grab;
+  aspect-ratio:1;touch-action:none;
+  max-width:48px;width:100%;margin:0 auto}
 .bank-item:active{cursor:grabbing}
 .bank-item svg{width:100%;height:100%;display:block;pointer-events:none}
 
@@ -245,11 +257,12 @@ button{font-family:inherit}
 
     <select class="tb-select" id="selAusschnitt" title="Spielfeld-Ausschnitt">
       <option value="totale">Totale (beide Tore)</option>
-      <option value="angriff_oben" selected>Angriff aufs Tor (Tor oben)</option>
-      <option value="verteidigung_oben">Verteidigung vorm Tor (Tor oben)</option>
+      <option value="angriff_oben" selected>Angriff (Tor oben)</option>
+      <option value="verteidigung_oben">Verteidigung (Tor oben)</option>
       <option value="halbfeld_links">Halbfeld (Tor links)</option>
       <option value="halbfeld_rechts">Halbfeld (Tor rechts)</option>
       <option value="torraum_oben">Torraum (Tor oben)</option>
+      <option value="trainingsflaeche">Trainingsfläche (leer)</option>
     </select>
 
     <select class="tb-select" id="selPreset" title="Aufstellung laden">
@@ -266,7 +279,6 @@ button{font-family:inherit}
     <div class="tb-group" role="group" aria-label="Werkzeug">
       <button class="tb-btn tb-btn-mode" id="modeSelect" aria-pressed="true" title="Verschieben">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7 17 2-7 7-2L3 3z"/></svg>
-        Verschieben
       </button>
     </div>
 
@@ -304,13 +316,23 @@ button{font-family:inherit}
       </div>
     </div>
 
-    <button class="tb-action" id="btnClearLines">Linien leeren</button>
-    <button class="tb-action" id="btnClearAll">Board leeren</button>
+    <button class="tb-action tb-icon-txt" id="btnClearLines" title="Alle Linien löschen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      Linien
+    </button>
+    <button class="tb-action tb-icon-txt" id="btnClearAll" title="Komplettes Board leeren">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      Board
+    </button>
 
     <div class="tb-spacer"></div>
 
-    <button class="tb-action primary" id="btnOpenSave">Speichern…</button>
-    <button class="tb-action" id="btnPrint">PDF</button>
+    <button class="tb-action primary tb-icon-btn" id="btnOpenSave" title="Speichern / Laden">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </button>
+    <button class="tb-action tb-icon-btn" id="btnPrint" title="Als PDF drucken">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    </button>
 
     <div class="tb-group" role="group" aria-label="Theme">
       <button class="tb-btn" id="thDark" aria-pressed="true" title="Dark">●</button>
@@ -606,6 +628,14 @@ const AUSSCHNITTE = {
       <!-- 4-m-Wartelinie -->
       <line x1="850" y1="290" x2="850" y2="310" stroke="var(--court-line)" stroke-width="3"/>
     `; }
+  },
+  trainingsflaeche: {
+    /* Komplett leeres Feld für freie Übungen ohne Spielfeldbezug */
+    vb: "0 0 1200 700", label: "Trainingsfläche",
+    pitch: function(){ return `
+      <rect x="0" y="0" width="1200" height="700" fill="var(--court-bg)"/>
+      <rect x="0" y="0" width="1200" height="700" fill="none" stroke="var(--court-line)" stroke-width="4"/>
+    `; }
   }
 };
 
@@ -850,7 +880,16 @@ function onTokenPointerDown(ev){
   const pt = clientToSvg(ev.clientX, ev.clientY);
   dragInfo = { tokenId:id, offsetX:pt.x - tok.x, offsetY:pt.y - tok.y,
                pointerId:ev.pointerId, el, isNew:false,
-               startX:ev.clientX, startY:ev.clientY, moved:false };
+               startX:ev.clientX, startY:ev.clientY, moved:false,
+               longPressFired:false };
+  // Long-Press-Timer (300ms): falls Pointer in der Zeit nicht bewegt wurde,
+  // lösen wir die Long-Action aus (Rotation/Farbwechsel/Label-Toggle)
+  dragInfo.longPressTimer = setTimeout(()=>{
+    if(dragInfo && !dragInfo.moved && dragInfo.tokenId === id){
+      dragInfo.longPressFired = true;
+      handleTokenLongAction(tok, el);
+    }
+  }, 300);
   el.classList.add("dragging");
   try{ el.setPointerCapture(ev.pointerId); }catch(e){}
   el.addEventListener("pointermove", onTokenPointerMove);
@@ -862,7 +901,16 @@ function onTokenPointerMove(ev){
   if(!dragInfo || ev.pointerId !== dragInfo.pointerId) return;
   const dx = Math.abs(ev.clientX - (dragInfo.startX||ev.clientX));
   const dy = Math.abs(ev.clientY - (dragInfo.startY||ev.clientY));
-  if(dx+dy > 3) dragInfo.moved = true;
+  if(dx+dy > 5){
+    dragInfo.moved = true;
+    // Long-Press abbrechen, sobald wirklich gedraggt wird
+    if(dragInfo.longPressTimer){
+      clearTimeout(dragInfo.longPressTimer);
+      dragInfo.longPressTimer = null;
+    }
+  }
+  // Wenn Long-Press schon ausgelöst wurde, nicht mehr verschieben
+  if(dragInfo.longPressFired) return;
   const pt = clientToSvg(ev.clientX, ev.clientY);
   const tok = STATE.tokens.find(t => t.id === dragInfo.tokenId);
   if(!tok) return;
@@ -875,6 +923,10 @@ function onTokenPointerMove(ev){
 
 function onTokenPointerUp(ev){
   if(!dragInfo || ev.pointerId !== dragInfo.pointerId) return;
+  if(dragInfo.longPressTimer){
+    clearTimeout(dragInfo.longPressTimer);
+    dragInfo.longPressTimer = null;
+  }
   const tok = STATE.tokens.find(t => t.id === dragInfo.tokenId);
   const el = dragInfo.el;
   el.classList.remove("dragging");
@@ -903,15 +955,8 @@ function clientToSvg(clientX, clientY){
 
 /* DOPPELKLICK */
 let lastDoubleTokenId = null;
-document.getElementById("board").addEventListener("dblclick",(ev)=>{
-  ev.preventDefault();  // iOS-Doppeltap-Zoom unterdrücken
-  const target = ev.target.closest(".tb-token");
-  if(!target) return;
-  ev.stopPropagation();
-  const id = +target.dataset.id;
-  const tok = STATE.tokens.find(t => t.id === id);
-  if(!tok) return;
-
+/* DOPPELKLICK + LONG-PRESS — gemeinsame Aktion */
+function handleTokenLongAction(tok, targetEl){
   // Bank/Matte: 22,5° rechtsherum drehen
   if(tok.kind === "bank" || tok.kind === "matte"){
     pushHistory();
@@ -919,14 +964,13 @@ document.getElementById("board").addEventListener("dblclick",(ev)=>{
     renderBoard();
     return;
   }
-
   // Hütchen: Farbe durchschalten (Rot → Gelb → Grün → Blau → Rot)
   if(tok.kind === "huetchen"){
     const COLORS = [
-      {color:"#e85d2a", dark:"#7a2a0a"},   // Rot
-      {color:"#facc15", dark:"#854d0e"},   // Gelb
-      {color:"#22c55e", dark:"#14532d"},   // Grün
-      {color:"#3b82f6", dark:"#1e3a8a"}    // Blau
+      {color:"#e85d2a", dark:"#7a2a0a"},
+      {color:"#facc15", dark:"#854d0e"},
+      {color:"#22c55e", dark:"#14532d"},
+      {color:"#3b82f6", dark:"#1e3a8a"}
     ];
     let idx = COLORS.findIndex(c => c.color === tok.color);
     if(idx === -1) idx = 0;
@@ -937,21 +981,29 @@ document.getElementById("board").addEventListener("dblclick",(ev)=>{
     renderBoard();
     return;
   }
-
-  // Andere Material-Symbole: keine Doppelklick-Aktion
+  // Pylon/TH: keine Aktion
   if(["pylon","th"].includes(tok.kind)) return;
-
-  // Spieler: erst Position↔Nummer, dann Editor
-  if(lastDoubleTokenId === id){
-    oeffneLabelEditor(tok, target);
+  // Spieler: erst Position↔Nummer toggeln, beim zweiten Long-Press Editor öffnen
+  if(lastDoubleTokenId === tok.id){
+    oeffneLabelEditor(tok, targetEl);
     lastDoubleTokenId = null;
     return;
   }
   pushHistory();
   toggleLabelMode(tok);
   renderBoard();
-  lastDoubleTokenId = id;
-  setTimeout(()=>{ if(lastDoubleTokenId === id) lastDoubleTokenId = null; }, 1500);
+  lastDoubleTokenId = tok.id;
+  setTimeout(()=>{ if(lastDoubleTokenId === tok.id) lastDoubleTokenId = null; }, 1500);
+}
+
+document.getElementById("board").addEventListener("dblclick",(ev)=>{
+  const target = ev.target.closest(".tb-token");
+  if(!target) return;
+  ev.stopPropagation();
+  const id = +target.dataset.id;
+  const tok = STATE.tokens.find(t => t.id === id);
+  if(!tok) return;
+  handleTokenLongAction(tok, target);
 });
 
 function toggleLabelMode(tok){
