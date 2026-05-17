@@ -880,6 +880,10 @@ function onBankPointerDown(ev){
   }
 }
 
+/* Manueller Doppeltap-Detector für iOS, wo dblclick auf SVG-Tokens
+   bei aktivem touch-action:none nicht zuverlässig feuert. */
+let lastTapInfo = { tokenId: null, time: 0 };
+
 function onTokenPointerDown(ev){
   if(STATE.mode !== "select") return;
   ev.stopPropagation();
@@ -887,6 +891,17 @@ function onTokenPointerDown(ev){
   const id = +el.dataset.id;
   const tok = STATE.tokens.find(t => t.id === id);
   if(!tok) return;
+
+  // DOPPELTAP-CHECK: zweiter Tap auf demselben Token innerhalb 400ms?
+  const now = Date.now();
+  if(lastTapInfo.tokenId === id && (now - lastTapInfo.time) < 400){
+    // Es ist ein Doppeltap → Long-Action auslösen, kein Drag starten
+    lastTapInfo = { tokenId: null, time: 0 };
+    handleTokenLongAction(tok, el);
+    return;
+  }
+  lastTapInfo = { tokenId: id, time: now };
+
   pushHistory();
   const pt = clientToSvg(ev.clientX, ev.clientY);
   dragInfo = { tokenId:id, offsetX:pt.x - tok.x, offsetY:pt.y - tok.y,
