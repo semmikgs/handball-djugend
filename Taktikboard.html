@@ -655,8 +655,8 @@ const POOL_DEF  = ["1","2","3","4","5","6"];
 const POOL_TW   = ["TW"];
 const POOL_TH   = ["TH"];   // Trainingshelfer
 const POOL_SUB  = ["W1","W2","W3","W4","W5"];
-const POOL_BALL = ["B"];
-const POOL_MAT  = ["Hütchen","Pylon","Bank","Matte"];
+const POOL_BALL = ["B","Medi"];
+const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte"];
 
 function tokenSvg(kind, label, opts){
   opts = opts || {};
@@ -733,6 +733,43 @@ function tokenSvg(kind, label, opts){
               <text y="${r*0.15}" text-anchor="middle" font-size="${r*0.5}"
                 fill="#fff" font-weight="700" opacity="0.9">MATTE</text>`;
     }
+    case "ring": {
+      // Gymnastikreifen: Doppelkreis (Ring), gelb
+      return `<circle r="${r*0.95}" fill="none" stroke="#facc15" stroke-width="${r*0.22}"/>
+              <circle r="${r*0.95}" fill="none" stroke="#854d0e" stroke-width="1.5"/>
+              <circle r="${r*0.73}" fill="none" stroke="#854d0e" stroke-width="1.5"/>`;
+    }
+    case "figur": {
+      // Aufblasbare Freistoßfigur: aufrechtes "Strichmännchen" stilisiert
+      const fg = "#5a4a6e", st = "#2a1e3e";
+      return `<g>
+        <!-- Standfuß (Basis) -->
+        <ellipse cx="0" cy="${r*0.85}" rx="${r*0.55}" ry="${r*0.18}" fill="${st}"/>
+        <!-- Körper (Säule) -->
+        <rect x="${-r*0.32}" y="${-r*0.35}" width="${r*0.64}" height="${r*1.2}"
+              fill="${fg}" stroke="${st}" stroke-width="1.5" rx="${r*0.18}"/>
+        <!-- Arme angedeutet (seitliche Wülste) -->
+        <ellipse cx="${-r*0.46}" cy="${r*0.15}" rx="${r*0.18}" ry="${r*0.35}" fill="${fg}" stroke="${st}" stroke-width="1.2"/>
+        <ellipse cx="${r*0.46}"  cy="${r*0.15}" rx="${r*0.18}" ry="${r*0.35}" fill="${fg}" stroke="${st}" stroke-width="1.2"/>
+        <!-- Kopf -->
+        <circle cx="0" cy="${-r*0.55}" r="${r*0.35}" fill="${fg}" stroke="${st}" stroke-width="1.5"/>
+        <!-- Gesichts-Andeutung (zwei Augen-Punkte) -->
+        <circle cx="${-r*0.12}" cy="${-r*0.58}" r="${r*0.06}" fill="${st}"/>
+        <circle cx="${r*0.12}"  cy="${-r*0.58}" r="${r*0.06}" fill="${st}"/>
+      </g>`;
+    }
+    case "medi": {
+      // Medizinball: größerer brauner Ball mit "Medi"-Beschriftung
+      const br = r*0.78;   // größer als Standardball (0.55)
+      return `<circle r="${br}" fill="#8b5a2b" stroke="#3a2410" stroke-width="2.5"/>
+              <!-- Naht-Andeutung (zwei Bogenlinien) -->
+              <path d="M ${-br*0.85} 0 A ${br*0.85} ${br*0.85} 0 0 1 ${br*0.85} 0"
+                fill="none" stroke="#3a2410" stroke-width="1.2" opacity="0.6"/>
+              <path d="M ${-br*0.85} 0 A ${br*0.85} ${br*0.85} 0 0 0 ${br*0.85} 0"
+                fill="none" stroke="#3a2410" stroke-width="1.2" opacity="0.6"/>
+              <text y="${br*0.32}" text-anchor="middle" font-size="${br*0.55}"
+                fill="#fff" font-weight="700">Medi</text>`;
+    }
     case "th": {
       // Trainingshelfer: grünes Quadrat mit "TH"
       return `<rect x="${-r*0.85}" y="${-r*0.85}" width="${r*1.7}" height="${r*1.7}"
@@ -767,12 +804,21 @@ function renderBank(){
     + `<div class="bank-item" data-kind="th" data-label=""><svg viewBox="${vb}">${tokenSvg("th","")}</svg></div>`;
   }
   fill("bankSub",  "sub",  POOL_SUB);
-  fill("bankBall", "ball", POOL_BALL);
+
+  // Bälle: Standard-Ball ("B") und Medizinball ("Medi") jeweils eigene kinds
+  const elBall = document.getElementById("bankBall");
+  if(elBall){
+    const r = 30;
+    const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
+    elBall.innerHTML =
+      `<div class="bank-item" data-kind="ball" data-label=""><svg viewBox="${vb}">${tokenSvg("ball","")}</svg></div>`
+    + `<div class="bank-item" data-kind="medi" data-label=""><svg viewBox="${vb}">${tokenSvg("medi","")}</svg></div>`;
+  }
 
   // Material: jedes Element hat eigenes kind, kein Label
   const elMat = document.getElementById("bankMat");
   if(elMat){
-    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Bank":"bank", "Matte":"matte"};
+    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte"};
     elMat.innerHTML = POOL_MAT.map(lab => {
       const r = 30;
       const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
@@ -985,8 +1031,8 @@ function handleTokenLongAction(tok, targetEl){
     renderBoard();
     return;
   }
-  // Pylon/TH: keine Aktion
-  if(["pylon","th"].includes(tok.kind)) return;
+  // Pylon/TH/Ring/Figur/Medi: keine Doppelklick-Aktion
+  if(["pylon","th","ring","figur","medi"].includes(tok.kind)) return;
   // Spieler: erst Position↔Nummer toggeln, beim zweiten Long-Press Editor öffnen
   if(lastDoubleTokenId === tok.id){
     oeffneLabelEditor(tok, targetEl);
@@ -1734,30 +1780,86 @@ function renderSaveList(){
     return;
   }
   out.innerHTML = sorted.map(saveCardHtml).join("");
+  attachSaveCardListeners();
+}
+
+/* Echte EventListener an die gerade erzeugten Karten hängen — robuster auf iOS als inline onclick */
+function attachSaveCardListeners(){
+  document.querySelectorAll(".save-card").forEach(card => {
+    const id = card.dataset.id;
+    // Kopfbereich klappt auf/zu
+    card.querySelector(".sc-top")?.addEventListener("click", (ev)=>{
+      // Klicks auf Aktionsknöpfe rechts NICHT als Auf-/Zuklappen werten
+      if(ev.target.closest(".sc-actions")) return;
+      card.classList.toggle("open");
+    });
+    // Lade-Button (oben rechts)
+    card.querySelector(".sc-load-btn")?.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      ladeKonstellation(id);
+    });
+    // Lade-Button (groß, unten)
+    card.querySelector(".sc-load-big")?.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      ladeKonstellation(id);
+    });
+    // Löschen
+    card.querySelector(".sc-delete-btn")?.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      loescheKonstellation(id);
+    });
+    // Export
+    card.querySelector(".sc-export-btn")?.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      exportiereKonst(id);
+    });
+    // PDF
+    card.querySelector(".sc-print-btn")?.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      druckeKonst(id);
+    });
+    // Sterne
+    card.querySelectorAll(".sc-stars .star").forEach((star, idx) => {
+      star.addEventListener("click", (ev)=>{
+        ev.stopPropagation();
+        setKonstRating(id, idx + 1);
+      });
+    });
+    // Felder
+    card.querySelector('input[data-feld="plan_datum"]')?.addEventListener("change", (ev)=>{
+      setKonstFeld(id, "plan_datum", ev.target.value || null);
+    });
+    card.querySelector('input[data-feld="name"]')?.addEventListener("change", (ev)=>{
+      setKonstFeld(id, "name", ev.target.value || "(ohne Name)");
+    });
+    card.querySelector('textarea[data-feld="kommentar"]')?.addEventListener("change", (ev)=>{
+      setKonstFeld(id, "kommentar", ev.target.value);
+    });
+  });
 }
 
 function saveCardHtml(k){
   const r = k.rating || 0;
   const sterne = [1,2,3,4,5].map(n =>
-    `<span class="star${n<=r?' filled':''}" onclick="setKonstRating('${k.id}',${n});event.stopPropagation();">★</span>`
+    `<span class="star${n<=r?' filled':''}" data-n="${n}">★</span>`
   ).join("");
   const dat = new Date(k.gespeichert_am).toLocaleString("de-DE",
     {day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"});
   const planDate = k.plan_datum ? new Date(k.plan_datum).toLocaleDateString("de-DE") : "";
   return `
   <div class="save-card" data-id="${esc(k.id)}">
-    <div class="sc-top" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sc-top">
       <div style="flex:1;min-width:0">
         <div class="sc-name">${esc(k.name)}</div>
         <div class="sc-date">${esc(dat)}${planDate?" · geplant: "+esc(planDate):""}</div>
         <div class="sc-meta">${esc(AUSSCHNITTE[k.schnitt]?.label || k.schnitt)} · ${k.tokens.length} Spieler · ${k.lines.length} Linien</div>
       </div>
-      <div class="sc-actions" onclick="event.stopPropagation();">
+      <div class="sc-actions">
         <div class="sc-stars" title="Bewertung">${sterne}</div>
-        <button class="icon-btn" onclick="ladeKonstellation('${esc(k.id)}')" title="Laden">
+        <button class="icon-btn sc-load-btn" title="Laden">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
-        <button class="icon-btn danger" onclick="loescheKonstellation('${esc(k.id)}')" title="Löschen">
+        <button class="icon-btn danger sc-delete-btn" title="Löschen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>
@@ -1765,18 +1867,21 @@ function saveCardHtml(k){
     <div class="sc-body">
       <div class="sc-fields">
         <label>Geplantes Datum
-          <input type="date" value="${esc(k.plan_datum||"")}" onchange="setKonstFeld('${esc(k.id)}','plan_datum',this.value||null)">
+          <input type="date" data-feld="plan_datum" value="${esc(k.plan_datum||"")}">
         </label>
         <label>Name
-          <input type="text" value="${esc(k.name)}" onchange="setKonstFeld('${esc(k.id)}','name',this.value||'(ohne Name)')">
+          <input type="text" data-feld="name" value="${esc(k.name)}">
         </label>
         <label>Kommentar
-          <textarea onchange="setKonstFeld('${esc(k.id)}','kommentar',this.value)">${esc(k.kommentar||"")}</textarea>
+          <textarea data-feld="kommentar">${esc(k.kommentar||"")}</textarea>
         </label>
       </div>
       <div class="sc-rowbtns">
-        <button class="tb-action" onclick="exportiereKonst('${esc(k.id)}')">Einzeln exportieren</button>
-        <button class="tb-action" onclick="druckeKonst('${esc(k.id)}')">PDF / Drucken</button>
+        <button class="tb-action primary sc-load-big" style="flex:1;min-width:160px">
+          ↥ In Board laden
+        </button>
+        <button class="tb-action sc-export-btn">Einzeln exportieren</button>
+        <button class="tb-action sc-print-btn">PDF / Drucken</button>
       </div>
     </div>
   </div>`;
