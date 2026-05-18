@@ -67,6 +67,8 @@ button{font-family:inherit}
 .tb-action:disabled{opacity:0.4;cursor:default}
 .tb-action.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .tb-action.primary:hover{filter:brightness(1.08);color:#fff}
+.tb-action.ed-lvl{flex:1;padding:8px 0;font-weight:700}
+.tb-action.ed-lvl.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 /* Reine Icon-Buttons (Diskette, PDF, Undo) */
 .tb-icon-btn{padding:5px;width:30px;height:28px;display:inline-flex;
@@ -490,6 +492,57 @@ button{font-family:inherit}
     <div class="sd-row">
       <button class="tb-action" id="sdCancel">Abbrechen</button>
       <button class="tb-action primary" id="sdOk">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="save-dialog" id="exportDialog">
+  <div class="save-dialog-inner" style="max-width:520px">
+    <h3>Als Modul-Entwurf exportieren</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;text-align:left">
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)">
+        Titel
+        <input type="text" id="edTitle" maxlength="80" placeholder="z.B. Pass-Stafette mit Wende">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)">
+        Bereich
+        <select id="edArea" class="tb-select">
+          <option value="kleine_spiele">Kleine Spiele</option>
+          <option value="aufwaermen">Aufwärmen</option>
+          <option value="athletik">Athletik</option>
+          <option value="technik">Technik</option>
+          <option value="taktik">Taktik</option>
+          <option value="uebungsspiel">Übungsspiel</option>
+          <option value="torwart">Torwart</option>
+        </select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)">
+        Subkategorie (Stichwort)
+        <input type="text" id="edSub" maxlength="40" placeholder="z.B. Passen, Stoßen, Wurfkraft">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)">
+        Level
+        <div style="display:flex;gap:6px">
+          <button type="button" class="tb-action ed-lvl" data-lvl="1">1</button>
+          <button type="button" class="tb-action ed-lvl selected" data-lvl="2">2</button>
+          <button type="button" class="tb-action ed-lvl" data-lvl="3">3</button>
+          <button type="button" class="tb-action ed-lvl" data-lvl="4">4</button>
+        </div>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)">
+        Kurzbeschreibung (1–3 Sätze)
+        <textarea id="edDesc" rows="3" maxlength="500"
+          style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px;resize:vertical"
+          placeholder="Was passiert in der Übung? Kurz und sachlich."></textarea>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)">
+        Was wird trainiert? (kommagetrennte Tags)
+        <input type="text" id="edTags" maxlength="200" placeholder="z.B. passen, koordination, gruppe">
+      </label>
+    </div>
+    <div class="sd-row">
+      <button class="tb-action" id="edCancel">Abbrechen</button>
+      <button class="tb-action primary" id="edOk">ZIP herunterladen</button>
     </div>
   </div>
 </div>
@@ -2418,6 +2471,11 @@ function attachSaveCardListeners(){
       ev.stopPropagation();
       exportiereKonst(id);
     });
+    // Modul-Export
+    card.querySelector(".sc-modulexport-btn")?.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      oeffneModulExport(id);
+    });
     // PDF
     card.querySelector(".sc-print-btn")?.addEventListener("click", (ev)=>{
       ev.stopPropagation();
@@ -2482,6 +2540,7 @@ function saveCardHtml(k){
         <button class="tb-action primary sc-load-big" style="flex:1;min-width:160px">
           ↥ In Board laden
         </button>
+        <button class="tb-action sc-modulexport-btn" title="Als Modul-Entwurf exportieren (ZIP für die Trainingsplanung)">Als Modul exportieren</button>
         <button class="tb-action sc-export-btn">Einzeln exportieren</button>
         <button class="tb-action sc-print-btn">PDF / Drucken</button>
       </div>
@@ -2649,6 +2708,261 @@ window.druckeKonst = function(id){
     }, 200);
   }, 100);
 };
+
+/* ============================================================
+   MODUL-EXPORT (für Trainingsplanungstool)
+   ============================================================ */
+
+let modulExportKonstId = null;
+
+function oeffneModulExport(id){
+  const k = ladeAlle().find(x => x.id === id);
+  if(!k) return;
+  modulExportKonstId = id;
+  // Felder vorbelegen
+  document.getElementById("edTitle").value = k.name || "";
+  document.getElementById("edArea").value = "technik";
+  document.getElementById("edSub").value = "";
+  document.getElementById("edDesc").value = k.kommentar || "";
+  document.getElementById("edTags").value = "";
+  document.querySelectorAll(".ed-lvl").forEach(b => b.classList.toggle("selected", b.dataset.lvl === "2"));
+  document.getElementById("exportDialog").classList.add("show");
+  setTimeout(()=>document.getElementById("edTitle").focus(), 50);
+}
+
+document.querySelectorAll(".ed-lvl").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".ed-lvl").forEach(b => b.classList.toggle("selected", b === btn));
+  });
+});
+
+document.getElementById("edCancel").addEventListener("click", ()=>{
+  document.getElementById("exportDialog").classList.remove("show");
+  modulExportKonstId = null;
+});
+
+document.getElementById("edOk").addEventListener("click", ()=>{
+  fuehreModulExportAus();
+});
+
+function fuehreModulExportAus(){
+  const k = ladeAlle().find(x => x.id === modulExportKonstId);
+  if(!k){ alert("Konstellation nicht mehr gefunden."); return; }
+  const titel = (document.getElementById("edTitle").value || "").trim();
+  if(!titel){ alert("Bitte einen Titel angeben."); return; }
+  const area = document.getElementById("edArea").value;
+  const sub = (document.getElementById("edSub").value || "").trim();
+  const lvlBtn = document.querySelector(".ed-lvl.selected");
+  const level = lvlBtn ? parseInt(lvlBtn.dataset.lvl, 10) : 2;
+  const desc = (document.getElementById("edDesc").value || "").trim();
+  const tags = (document.getElementById("edTags").value || "")
+    .split(",").map(s => s.trim()).filter(Boolean);
+
+  // 1) JSON-Entwurf
+  const entwurf = {
+    _schema_version: "modul_entwurf_v1",
+    erzeugt_am: new Date().toISOString(),
+    quelle: "Taktikboard MTV Handball",
+    pflichtfelder: {
+      titel, area, subcategory_stichwort: sub, level,
+      kurzbeschreibung: desc, tags_was_wird_trainiert: tags
+    },
+    konstellation: {
+      schnitt: k.schnitt,
+      tokens: k.tokens, lines: k.lines, texts: k.texts || [],
+      kommentar: k.kommentar || "", rating: k.rating || 0
+    }
+  };
+  const jsonStr = JSON.stringify(entwurf, null, 2);
+
+  // 2) SVG der Konstellation (eigenständig, stilkonform)
+  const svgStr = baueModulSvg(k);
+
+  // 3) README
+  const readme = baueReadme(titel, area);
+
+  // 4) ZIP
+  const filenameSafe = titel.replace(/[^A-Za-z0-9_äöüÄÖÜß\-]+/g, "_").substring(0, 40);
+  const datum = new Date().toISOString().slice(0,10);
+  const zipName = `Modulentwurf_${area}_${filenameSafe}_${datum}.zip`;
+
+  const zipBlob = baueZip([
+    { name: "modul_entwurf.json", data: jsonStr },
+    { name: "visualisierung.svg", data: svgStr },
+    { name: "README.txt", data: readme }
+  ]);
+
+  const url = URL.createObjectURL(zipBlob);
+  const a = document.createElement("a");
+  a.href = url; a.download = zipName;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+
+  document.getElementById("exportDialog").classList.remove("show");
+  modulExportKonstId = null;
+  showSaveToast("Modul-Entwurf exportiert");
+}
+
+/* Erzeugt ein eigenständiges SVG der gespeicherten Konstellation —
+   inkl. Spielfeld-Hintergrund, ohne Textbox-Rahmen/Griffe. */
+function baueModulSvg(k){
+  // Konstellation temporär in STATE laden, rendern, klonen, restaurieren
+  const saved = {
+    tokens: STATE.tokens, lines: STATE.lines, texts: STATE.texts, schnitt: STATE.schnitt
+  };
+  STATE.schnitt = k.schnitt;
+  STATE.tokens = k.tokens.map(t => Object.assign({}, t, {id: STATE.nextId++}));
+  STATE.lines  = k.lines.map(l => Object.assign({}, l, {id: STATE.nextId++}));
+  STATE.texts  = (k.texts || []).map(x => Object.assign({}, x, {id: STATE.nextId++}));
+  renderBoard();
+  const clone = document.getElementById("board").cloneNode(true);
+  clone.removeAttribute("class"); clone.removeAttribute("style");
+  clone.removeAttribute("data-text-mode");
+  clone.querySelectorAll(".tb-textbox-handle, .tb-textbox-frame, .tb-textbox-rect").forEach(el => el.remove());
+  inlineSvgColors(clone);
+  // Hintergrundfarbe direkt setzen (sonst grau, wenn ohne CSS geöffnet)
+  clone.setAttribute("style", "background:#f4eee2");
+  // namespace sicherstellen
+  if(!clone.getAttribute("xmlns")) clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + clone.outerHTML;
+  // restore
+  STATE.tokens = saved.tokens; STATE.lines = saved.lines;
+  STATE.texts = saved.texts; STATE.schnitt = saved.schnitt;
+  document.getElementById("selAusschnitt").value = saved.schnitt;
+  renderBoard();
+  return xml;
+}
+
+function baueReadme(titel, area){
+  return [
+    "MODUL-ENTWURF — Handball-Trainingssystem MTV",
+    "=============================================",
+    "",
+    `Titel:   ${titel}`,
+    `Bereich: ${area}`,
+    `Erzeugt: ${new Date().toLocaleString("de-DE")}`,
+    "",
+    "Inhalt:",
+    "- modul_entwurf.json   -> Pflichtfelder + Konstellationsdaten",
+    "- visualisierung.svg   -> SVG-Visualisierung der Uebung",
+    "- README.txt           -> diese Datei",
+    "",
+    "WAS JETZT?",
+    "----------",
+    "Lade die Dateien modul_entwurf.json und visualisierung.svg",
+    "in einen Chat mit Claude hoch. Falls du bereits eine",
+    "wachsende F_Modules_Eigene.json pflegst, lade diese mit hoch.",
+    "",
+    "Sage Claude: \"Hier ein neuer Modul-Entwurf, bitte vervollstaendigen.\"",
+    "",
+    "Claude wird:",
+    "1. 3-5 inhaltliche Rueckfragen stellen (Coaching-Points,",
+    "   Variationen, Querverbindungen zu bestehenden Modulen)",
+    "2. Konsistenz der Tags und Trainingsziele pruefen",
+    "3. Felder aus den Quellen-PDFs ergaenzen (DHB/BWHV/IAT)",
+    "4. Den vollstaendigen Modul-Eintrag im richtigen Schema",
+    "   in F_Modules_Eigene.json einfuegen",
+    "5. Das SVG-Symbol stilkonform in Visuals_Eigene.svg einfuegen",
+    ""
+  ].join("\n");
+}
+
+/* ============================================================
+   Minimaler ZIP-Schreiber (STORE-Methode, keine Komprimierung).
+   Erzeugt valide ZIP-Dateien aus { name, data } Listen.
+   data kann String (UTF-8) oder Uint8Array sein.
+   ============================================================ */
+function baueZip(eintraege){
+  // CRC-32 Tabelle
+  const crcTable = (function(){
+    const t = new Uint32Array(256);
+    for(let i=0;i<256;i++){
+      let c = i;
+      for(let j=0;j<8;j++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      t[i] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(bytes){
+    let c = 0xffffffff;
+    for(let i=0;i<bytes.length;i++) c = crcTable[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+  function encodeUtf8(s){
+    return new TextEncoder().encode(s);
+  }
+  function u16(n){ return [n & 0xff, (n >>> 8) & 0xff]; }
+  function u32(n){
+    return [n & 0xff, (n >>> 8) & 0xff, (n >>> 16) & 0xff, (n >>> 24) & 0xff];
+  }
+  // DOS-Zeit/Datum
+  const now = new Date();
+  const dosTime =
+    ((now.getHours() & 0x1f) << 11) |
+    ((now.getMinutes() & 0x3f) << 5) |
+    ((Math.floor(now.getSeconds() / 2)) & 0x1f);
+  const dosDate =
+    (((now.getFullYear() - 1980) & 0x7f) << 9) |
+    (((now.getMonth() + 1) & 0xf) << 5) |
+    (now.getDate() & 0x1f);
+
+  const localChunks = [];
+  const centralChunks = [];
+  let offset = 0;
+
+  for(const e of eintraege){
+    const nameBytes = encodeUtf8(e.name);
+    const dataBytes = (typeof e.data === "string") ? encodeUtf8(e.data) : e.data;
+    const crc = crc32(dataBytes);
+    const size = dataBytes.length;
+
+    // Local file header
+    const lfh = [].concat(
+      u32(0x04034b50),
+      u16(20),         // version needed
+      u16(0x0800),     // GP flag (bit 11 = UTF-8 names)
+      u16(0),          // compression: store
+      u16(dosTime), u16(dosDate),
+      u32(crc), u32(size), u32(size),
+      u16(nameBytes.length), u16(0)
+    );
+    const lfhBytes = new Uint8Array(lfh);
+    localChunks.push(lfhBytes, nameBytes, dataBytes);
+
+    // Central directory entry
+    const cdh = [].concat(
+      u32(0x02014b50),
+      u16(20),         // version made by
+      u16(20),         // version needed
+      u16(0x0800),
+      u16(0),
+      u16(dosTime), u16(dosDate),
+      u32(crc), u32(size), u32(size),
+      u16(nameBytes.length), u16(0), u16(0),
+      u16(0), u16(0), u32(0),
+      u32(offset)
+    );
+    centralChunks.push(new Uint8Array(cdh), nameBytes);
+
+    offset += lfhBytes.length + nameBytes.length + dataBytes.length;
+  }
+
+  // Berechne Größe Central Directory
+  const cdStart = offset;
+  let cdSize = 0;
+  for(const c of centralChunks) cdSize += c.length;
+
+  // End of central directory
+  const eocd = new Uint8Array([].concat(
+    u32(0x06054b50),
+    u16(0), u16(0),
+    u16(eintraege.length), u16(eintraege.length),
+    u32(cdSize), u32(cdStart),
+    u16(0)
+  ));
+
+  return new Blob([...localChunks, ...centralChunks, eocd], { type: "application/zip" });
+}
 
 function inlineSvgColors(svg){
   const map = {
