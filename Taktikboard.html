@@ -1229,6 +1229,7 @@ let FREE_COLOR = "#000000";  // aktuell gewählte Farbe des freien Stifts
 let FREE_WIDTH = 3;          // aktuell gewählte Strichstärke
 let TEXT_SIZE = "md";        // aktuell gewählte Textgröße: "lg" | "md" | "sm"
 let ACTIVE_TEXT_ID = null;   // ID der gerade editierten/zuletzt fokussierten Textbox
+let TEXT_JUST_CLOSED_AT = 0; // Zeitstempel des letzten Editing-Endes (Race-Condition-Schutz)
 
 function setMode(m){
   // Beim Verlassen des Text-Modus offene Edit-Sessions sauber beenden
@@ -1275,6 +1276,9 @@ document.getElementById("penText").addEventListener("click", ()=>{
 
 /* Textgrößen-Auswahl */
 document.querySelectorAll(".tp-size").forEach(btn => {
+  // Verhindert, dass der Klick auf den Button den Fokus aus dem editierenden Body nimmt
+  btn.addEventListener("mousedown", (ev)=> ev.preventDefault());
+  btn.addEventListener("pointerdown", (ev)=> ev.preventDefault());
   btn.addEventListener("click", ()=>{
     const size = btn.dataset.size;
     TEXT_SIZE = size;
@@ -1564,20 +1568,24 @@ function startTextEditing(id){
   body.addEventListener("blur", onTextBlur, { once:true });
 }
 
-function onTextBlur(ev){
-  const body = ev.target;
-  const grp = body.closest(".tb-textbox");
+/* Idempotent: beendet die Edit-Session der Box mit der angegebenen ID synchron.
+   Wird sowohl vom blur-Event als auch direkt vom pointerdown aufgerufen. */
+function commitTextEditing(id){
+  const grp = document.querySelector(`#texts .tb-textbox[data-id="${id}"]`);
   if(!grp) return;
+  const body = grp.querySelector(".tb-textbox-body");
+  if(!body) return;
+  // Wenn bereits committet (keine is-editing-Klasse mehr) → fertig
+  if(!grp.classList.contains("is-editing")) return;
   body.removeAttribute("contenteditable");
   body.removeAttribute("data-editing");
   grp.classList.remove("is-editing");
-  const id = +grp.getAttribute("data-id");
   if(ACTIVE_TEXT_ID === id) ACTIVE_TEXT_ID = null;
+  TEXT_JUST_CLOSED_AT = Date.now();
   const tb = STATE.texts.find(t => t.id === id);
   if(!tb) return;
   const newText = body.textContent.trim();
   if(newText.length === 0){
-    // Leer → Eintrag entfernen
     STATE.texts = STATE.texts.filter(t => t.id !== id);
     renderBoard();
   } else if(newText !== tb.text){
@@ -1585,9 +1593,24 @@ function onTextBlur(ev){
   }
 }
 
+function onTextBlur(ev){
+  const body = ev.target;
+  const grp = body.closest(".tb-textbox");
+  if(!grp) return;
+  const id = +grp.getAttribute("data-id");
+  commitTextEditing(id);
+}
+
 function finishTextEditing(){
-  const active = document.querySelector('.tb-textbox-body[contenteditable="true"]');
-  if(active) active.blur();
+  if(ACTIVE_TEXT_ID != null){
+    commitTextEditing(ACTIVE_TEXT_ID);
+  } else {
+    const active = document.querySelector('.tb-textbox-body[contenteditable="true"]');
+    if(active){
+      const grp = active.closest(".tb-textbox");
+      if(grp) commitTextEditing(+grp.getAttribute("data-id"));
+    }
+  }
 }
 
 /* Pointer-Logik im Text-Modus */
@@ -1642,9 +1665,21 @@ function handleTextPointerDown(ev){
   }
 
   // Klick auf leere Stelle → neuen Rahmen anlegen (Tap oder Drag)
-  // ABER: wenn aktuell eine Box editiert wird, nur Editieren beenden und nichts erzeugen
-  if(ACTIVE_TEXT_ID != null){
-    finishTextEditing();
+  // ABER: wenn aktuell eine Box editiert wird, nur Editieren beenden und nichts erzeugen.
+  // Robuste Detection: ACTIVE_TEXT_ID ODER DOM-Klasse, da auf iPad-Safari
+  // ein Tap-außerhalb manchmal vorher schon einen Fokuswechsel auslöst.
+  const editingGrp = document.querySelector("#texts .tb-textbox.is-editing");
+  if(ACTIVE_TEXT_ID != null || editingGrp){
+    const id = ACTIVE_TEXT_ID != null
+      ? ACTIVE_TEXT_ID
+      : +editingGrp.getAttribute("data-id");
+    commitTextEditing(id);
+    TEXT_JUST_CLOSED_AT = Date.now();
+    textInfo = null;
+    return;
+  }
+  // Race-Condition-Schutz: kurz nach Editing-Schluss keine neue Box erzeugen
+  if(Date.now() - TEXT_JUST_CLOSED_AT < 350){
     textInfo = null;
     return;
   }
