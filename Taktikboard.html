@@ -131,8 +131,10 @@ button{font-family:inherit}
 .tb-textbox-frame{fill:transparent;stroke:transparent;stroke-width:1;
   pointer-events:none;vector-effect:non-scaling-stroke}
 [data-text-mode="true"] .tb-textbox-frame{stroke:var(--accent);stroke-dasharray:4 3;opacity:0.7}
-[data-text-mode="true"] .tb-textbox-rect{cursor:move;pointer-events:auto}
-.tb-textbox-rect{fill:transparent;pointer-events:none}
+/* Klickfänger: immer klickbar (Select-Modus zum Verschieben, Text-Modus zum Editieren/Resize),
+   nur im Bearbeitungsmodus pointer-events:none, damit Cursor in den Text kommt */
+.tb-textbox-rect{fill:transparent;pointer-events:auto;cursor:move}
+.tb-textbox.is-editing .tb-textbox-rect{pointer-events:none}
 .tb-textbox-handle{fill:var(--accent);stroke:#fff;stroke-width:1;
   vector-effect:non-scaling-stroke;cursor:nwse-resize;display:none;pointer-events:auto}
 [data-text-mode="true"] .tb-textbox-handle{display:block}
@@ -141,12 +143,10 @@ button{font-family:inherit}
 .tb-textbox-handle.h-ne,.tb-textbox-handle.h-sw{cursor:nesw-resize}
 .tb-textbox-handle.h-nw,.tb-textbox-handle.h-se{cursor:nwse-resize}
 .tb-textbox-body{width:100%;height:100%;padding:2px 4px;box-sizing:border-box;
-  color:var(--ink);font-family:inherit;line-height:1.15;
+  color:#111;font-family:inherit;line-height:1.15;
   word-wrap:break-word;overflow-wrap:break-word;overflow:hidden;
   outline:none;white-space:pre-wrap}
-.tb-textbox-body[contenteditable="true"]{cursor:text;background:rgba(255,255,255,0.04)}
-[data-theme="light"] .tb-textbox-body{color:#111}
-[data-theme="light"] .tb-textbox-body[contenteditable="true"]{background:rgba(0,0,0,0.04)}
+.tb-textbox-body[contenteditable="true"]{cursor:text;background:rgba(255,255,255,0.85);border-radius:2px}
 .tb-textbox-body.size-lg{font-size:28px;font-weight:700}
 .tb-textbox-body.size-md{font-size:16px;font-weight:500}
 .tb-textbox-body.size-sm{font-size:11px;font-weight:500}
@@ -1228,6 +1228,7 @@ document.getElementById("labelInput").addEventListener("keydown",(ev)=>{
 let FREE_COLOR = "#000000";  // aktuell gewählte Farbe des freien Stifts
 let FREE_WIDTH = 3;          // aktuell gewählte Strichstärke
 let TEXT_SIZE = "md";        // aktuell gewählte Textgröße: "lg" | "md" | "sm"
+let ACTIVE_TEXT_ID = null;   // ID der gerade editierten/zuletzt fokussierten Textbox
 
 function setMode(m){
   // Beim Verlassen des Text-Modus offene Edit-Sessions sauber beenden
@@ -1275,10 +1276,33 @@ document.getElementById("penText").addEventListener("click", ()=>{
 /* Textgrößen-Auswahl */
 document.querySelectorAll(".tp-size").forEach(btn => {
   btn.addEventListener("click", ()=>{
-    TEXT_SIZE = btn.dataset.size;
-    document.querySelectorAll(".tp-size").forEach(b => b.classList.toggle("selected", b === btn));
+    const size = btn.dataset.size;
+    TEXT_SIZE = size;
+    selectTextSizeBtn(size);
+    // Wenn eine Box aktiv (editierend oder gerade fokussiert), deren Größe ändern
+    if(ACTIVE_TEXT_ID != null){
+      const tb = STATE.texts.find(t => t.id === ACTIVE_TEXT_ID);
+      if(tb && tb.size !== size){
+        pushHistory();
+        tb.size = size;
+        // Body-Klasse direkt umschalten, ohne Edit-Session zu zerstören
+        const body = document.querySelector(`#texts .tb-textbox[data-id="${tb.id}"] .tb-textbox-body`);
+        if(body){
+          body.classList.remove("size-lg","size-md","size-sm");
+          body.classList.add("size-"+size);
+          // Editier-Fokus erhalten
+          if(body.getAttribute("contenteditable") === "true") body.focus();
+        }
+      }
+    }
   });
 });
+
+function selectTextSizeBtn(size){
+  document.querySelectorAll(".tp-size").forEach(b =>
+    b.classList.toggle("selected", b.dataset.size === size)
+  );
+}
 
 /* Freier Stift: Klick wechselt in den Modus UND öffnet die Farbpalette.
    Erneuter Klick bei aktivem free-Modus schließt nur die Palette
@@ -1325,7 +1349,29 @@ let eraseActive = false;  // Pointer ist im Radier-Modus gedrückt
 let textInfo = null;      // {action:"create"|"resize"|"move", ...}
 
 document.getElementById("board").addEventListener("pointerdown",(ev)=>{
-  if(STATE.mode === "select") return;
+  // Im Select-Modus: nur Textboxen ansprechen (Verschieben), sonst ignorieren
+  if(STATE.mode === "select"){
+    const grp = ev.target.closest(".tb-textbox");
+    if(grp){
+      const id = +grp.getAttribute("data-id");
+      const tb = STATE.texts.find(t => t.id === id);
+      if(!tb) return;
+      ev.preventDefault();
+      const pt = clientToSvg(ev.clientX, ev.clientY);
+      textInfo = {
+        action: "move",
+        pointerId: ev.pointerId,
+        id,
+        startPt: pt,
+        startBox: { x:tb.x, y:tb.y, w:tb.w, h:tb.h },
+        moved: false,
+        historyPushed: false,
+        fromSelectMode: true
+      };
+      try{ document.getElementById("board").setPointerCapture(ev.pointerId); }catch(e){}
+    }
+    return;
+  }
   if(ev.target.closest(".tb-token")) return;
 
   // TEXT-WERKZEUG: eigene Logik, dann fertig
@@ -1361,8 +1407,8 @@ document.getElementById("board").addEventListener("pointerdown",(ev)=>{
 });
 
 document.getElementById("board").addEventListener("pointermove",(ev)=>{
-  // Text-Werkzeug: eigene Move-Logik
-  if(STATE.mode === "text" && textInfo && ev.pointerId === textInfo.pointerId){
+  // Text-Werkzeug ODER Select-Move einer Textbox
+  if(textInfo && ev.pointerId === textInfo.pointerId){
     handleTextPointerMove(ev);
     return;
   }
@@ -1384,8 +1430,8 @@ document.getElementById("board").addEventListener("pointermove",(ev)=>{
 });
 
 document.getElementById("board").addEventListener("pointerup",(ev)=>{
-  // Text-Werkzeug: eigene Up-Logik
-  if(STATE.mode === "text" && textInfo && ev.pointerId === textInfo.pointerId){
+  // Text-Werkzeug ODER Select-Move einer Textbox
+  if(textInfo && ev.pointerId === textInfo.pointerId){
     handleTextPointerUp(ev);
     return;
   }
@@ -1494,8 +1540,16 @@ function startTextEditing(id){
   if(!grp) return;
   const body = grp.querySelector(".tb-textbox-body");
   if(!body) return;
+  const tb = STATE.texts.find(t => t.id === id);
+  ACTIVE_TEXT_ID = id;
+  // Palette an Größe der aktiven Box anpassen
+  if(tb && tb.size){
+    TEXT_SIZE = tb.size;
+    selectTextSizeBtn(tb.size);
+  }
   body.setAttribute("contenteditable","true");
   body.setAttribute("data-editing","true");
+  grp.classList.add("is-editing");
   // Cursor ans Ende
   body.focus();
   try{
@@ -1516,7 +1570,9 @@ function onTextBlur(ev){
   if(!grp) return;
   body.removeAttribute("contenteditable");
   body.removeAttribute("data-editing");
+  grp.classList.remove("is-editing");
   const id = +grp.getAttribute("data-id");
+  if(ACTIVE_TEXT_ID === id) ACTIVE_TEXT_ID = null;
   const tb = STATE.texts.find(t => t.id === id);
   if(!tb) return;
   const newText = body.textContent.trim();
@@ -1586,7 +1642,12 @@ function handleTextPointerDown(ev){
   }
 
   // Klick auf leere Stelle → neuen Rahmen anlegen (Tap oder Drag)
-  finishTextEditing();
+  // ABER: wenn aktuell eine Box editiert wird, nur Editieren beenden und nichts erzeugen
+  if(ACTIVE_TEXT_ID != null){
+    finishTextEditing();
+    textInfo = null;
+    return;
+  }
   const pt = clientToSvg(ev.clientX, ev.clientY);
   textInfo = {
     action: "create",
@@ -1707,8 +1768,12 @@ function handleTextPointerUp(ev){
     }
   } else if(textInfo.action === "move"){
     if(!textInfo.moved){
-      // Reiner Klick auf bestehenden Rahmen → editieren
-      startTextEditing(textInfo.id);
+      // Reiner Klick auf bestehenden Rahmen
+      // Im Select-Modus: nichts tun (nur Verschieben erlaubt).
+      // Im Text-Modus: Editieren starten.
+      if(!textInfo.fromSelectMode){
+        startTextEditing(textInfo.id);
+      }
     }
   }
   // resize: nichts weiter zu tun
