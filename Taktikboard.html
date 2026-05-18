@@ -151,6 +151,20 @@ button{font-family:inherit}
 .tb-textbox-body.size-md{font-size:16px;font-weight:500}
 .tb-textbox-body.size-sm{font-size:11px;font-weight:500}
 
+/* Mülltonne (erscheint beim Verschieben von Spielern/Texten) */
+.trash-zone{position:fixed;right:20px;bottom:24px;width:56px;height:56px;
+  background:var(--bg-elevated);border:2px solid var(--line);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  z-index:9000;opacity:0;transform:scale(0.85) translateY(8px);
+  pointer-events:none;transition:opacity 0.15s ease, transform 0.15s ease,
+    background-color 0.1s, border-color 0.1s, color 0.1s}
+.trash-zone.visible{opacity:1;transform:scale(1) translateY(0);pointer-events:none}
+.trash-zone.hover{background:var(--bad,#ef476f);border-color:var(--bad,#ef476f);
+  color:#fff;transform:scale(1.15) translateY(0)}
+.trash-zone svg{width:28px;height:28px}
+@media print{ .trash-zone{display:none !important} }
+
 .main{display:grid;grid-template-columns:150px 1fr;height:100%;overflow:hidden}
 .bank{background:var(--bg-elevated);border-right:1px solid var(--line);
   padding:0;overflow:hidden;
@@ -1037,7 +1051,11 @@ function onTokenPointerMove(ev){
   if(!dragInfo || ev.pointerId !== dragInfo.pointerId) return;
   const dx = Math.abs(ev.clientX - (dragInfo.startX||ev.clientX));
   const dy = Math.abs(ev.clientY - (dragInfo.startY||ev.clientY));
-  if(dx+dy > 3) dragInfo.moved = true;
+  if(dx+dy > 3){
+    if(!dragInfo.moved) showTrashZone(); // erst beim echten Bewegen einblenden
+    dragInfo.moved = true;
+  }
+  updateTrashHover(ev.clientX, ev.clientY);
   const pt = clientToSvg(ev.clientX, ev.clientY);
   const tok = STATE.tokens.find(t => t.id === dragInfo.tokenId);
   if(!tok) return;
@@ -1057,6 +1075,14 @@ function onTokenPointerUp(ev){
   el.removeEventListener("pointermove", onTokenPointerMove);
   el.removeEventListener("pointerup", onTokenPointerUp);
   el.removeEventListener("pointercancel", onTokenPointerUp);
+  const droppedOnTrash = isOverTrash(ev.clientX, ev.clientY);
+  hideTrashZone();
+  if(tok && droppedOnTrash){
+    STATE.tokens = STATE.tokens.filter(t => t.id !== tok.id);
+    renderBoard();
+    dragInfo = null;
+    return;
+  }
   const def = AUSSCHNITTE[STATE.schnitt];
   const [, , w, h] = def.vb.split(" ").map(Number);
   if(tok && (tok.x < -30 || tok.x > w+30 || tok.y < -30 || tok.y > h+30)){
@@ -1064,6 +1090,24 @@ function onTokenPointerUp(ev){
     renderBoard();
   }
   dragInfo = null;
+}
+
+/* ============ Mülltonne zum Löschen via Drag ============ */
+function showTrashZone(){ document.getElementById("trashZone").classList.add("visible"); }
+function hideTrashZone(){
+  const t = document.getElementById("trashZone");
+  t.classList.remove("visible","hover");
+}
+function isOverTrash(clientX, clientY){
+  const t = document.getElementById("trashZone");
+  if(!t.classList.contains("visible")) return false;
+  const r = t.getBoundingClientRect();
+  return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+}
+function updateTrashHover(clientX, clientY){
+  const t = document.getElementById("trashZone");
+  if(!t.classList.contains("visible")) return;
+  t.classList.toggle("hover", isOverTrash(clientX, clientY));
 }
 
 function clientToSvg(clientX, clientY){
@@ -1736,8 +1780,10 @@ function handleTextPointerMove(ev){
     if(!textInfo.moved && (Math.abs(dx) > TEXT_DRAG_THRESHOLD || Math.abs(dy) > TEXT_DRAG_THRESHOLD)){
       textInfo.moved = true;
       if(!textInfo.historyPushed){ pushHistory(); textInfo.historyPushed = true; }
+      showTrashZone();
     }
     if(textInfo.moved){
+      updateTrashHover(ev.clientX, ev.clientY);
       const tb = STATE.texts.find(t => t.id === textInfo.id);
       if(!tb) return;
       tb.x = textInfo.startBox.x + dx;
@@ -1775,6 +1821,16 @@ function handleTextPointerMove(ev){
 function handleTextPointerUp(ev){
   const board = document.getElementById("board");
   try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
+
+  // Move + Drop auf Tonne → löschen (vor allen anderen Pfaden behandeln)
+  if(textInfo.action === "move" && textInfo.moved && isOverTrash(ev.clientX, ev.clientY)){
+    STATE.texts = STATE.texts.filter(t => t.id !== textInfo.id);
+    hideTrashZone();
+    renderBoard();
+    textInfo = null;
+    return;
+  }
+  hideTrashZone();
 
   if(textInfo.action === "create"){
     if(!textInfo.moved){
@@ -2659,6 +2715,15 @@ setMode("select");
 <div class="save-toast" id="saveToast" role="status" aria-live="polite">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg>
   <span id="saveToastText">Gespeichert</span>
+</div>
+<div class="trash-zone" id="trashZone" aria-hidden="true" title="Hier ablegen zum Löschen">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 6h18"/>
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+    <path d="M10 11v6"/>
+    <path d="M14 11v6"/>
+  </svg>
 </div>
 </body>
 </html>
