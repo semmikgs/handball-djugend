@@ -108,6 +108,49 @@ button{font-family:inherit}
 .pp-size.selected{border-color:var(--accent);background:var(--bg-elevated-2);box-shadow:0 0 0 2px var(--accent) inset}
 .pp-size:hover{border-color:var(--accent)}
 
+/* Text-Werkzeug Stil */
+.tb-pen.pen-text{color:#c8ccd4}
+.tb-pen.pen-text[aria-pressed="true"]{color:var(--accent)}
+.tb-pen.pen-text .pt-letter{font-family:Georgia,serif;font-weight:700;font-size:15px;line-height:1}
+.text-palette{position:absolute;background:var(--bg-elevated);
+  border:1px solid var(--line);border-radius:10px;padding:8px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.3);display:none;flex-direction:column;
+  gap:6px;z-index:50;min-width:200px}
+.text-palette.show{display:flex}
+.text-palette .tp-row{display:flex;gap:6px}
+.tp-size{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:6px;
+  color:var(--ink);cursor:pointer;padding:6px 8px;display:flex;align-items:center;justify-content:center;
+  font-family:Georgia,serif;font-weight:700}
+.tp-size.selected{border-color:var(--accent);background:var(--bg-elevated-2);box-shadow:0 0 0 2px var(--accent) inset}
+.tp-size:hover{border-color:var(--accent)}
+.tp-size .tps-lg{font-size:22px;line-height:1}
+.tp-size .tps-md{font-size:15px;line-height:1}
+.tp-size .tps-sm{font-size:11px;line-height:1}
+
+/* Textrahmen auf dem Board */
+.tb-textbox-frame{fill:transparent;stroke:transparent;stroke-width:1;
+  pointer-events:none;vector-effect:non-scaling-stroke}
+[data-text-mode="true"] .tb-textbox-frame{stroke:var(--accent);stroke-dasharray:4 3;opacity:0.7}
+[data-text-mode="true"] .tb-textbox-rect{cursor:move;pointer-events:auto}
+.tb-textbox-rect{fill:transparent;pointer-events:none}
+.tb-textbox-handle{fill:var(--accent);stroke:#fff;stroke-width:1;
+  vector-effect:non-scaling-stroke;cursor:nwse-resize;display:none;pointer-events:auto}
+[data-text-mode="true"] .tb-textbox-handle{display:block}
+.tb-textbox-handle.h-n,.tb-textbox-handle.h-s{cursor:ns-resize}
+.tb-textbox-handle.h-e,.tb-textbox-handle.h-w{cursor:ew-resize}
+.tb-textbox-handle.h-ne,.tb-textbox-handle.h-sw{cursor:nesw-resize}
+.tb-textbox-handle.h-nw,.tb-textbox-handle.h-se{cursor:nwse-resize}
+.tb-textbox-body{width:100%;height:100%;padding:2px 4px;box-sizing:border-box;
+  color:var(--ink);font-family:inherit;line-height:1.15;
+  word-wrap:break-word;overflow-wrap:break-word;overflow:hidden;
+  outline:none;white-space:pre-wrap}
+.tb-textbox-body[contenteditable="true"]{cursor:text;background:rgba(255,255,255,0.04)}
+[data-theme="light"] .tb-textbox-body{color:#111}
+[data-theme="light"] .tb-textbox-body[contenteditable="true"]{background:rgba(0,0,0,0.04)}
+.tb-textbox-body.size-lg{font-size:28px;font-weight:700}
+.tb-textbox-body.size-md{font-size:16px;font-weight:500}
+.tb-textbox-body.size-sm{font-size:11px;font-weight:500}
+
 .main{display:grid;grid-template-columns:150px 1fr;height:100%;overflow:hidden}
 .bank{background:var(--bg-elevated);border-right:1px solid var(--line);
   padding:0;overflow:hidden;
@@ -258,6 +301,8 @@ button{font-family:inherit}
   .pv-foot{margin-top:5mm;font-size:10pt;color:#222}
   .pv-foot .pv-comment{background:#fffbeb;border-left:1mm solid #d96e00;
     padding:2mm 3mm;margin-bottom:3mm}
+  .tb-textbox-frame,.tb-textbox-handle{display:none !important}
+  .tb-textbox-body{color:#000 !important;background:transparent !important}
 }
 </style>
 </head>
@@ -305,6 +350,9 @@ button{font-family:inherit}
       <button class="tb-pen pen-free" id="penFree" aria-pressed="false" title="Freier Stift (Farbe wählen)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l3.5-1 11-11-2.5-2.5-11 11L3 21z"/><path d="M14 6l3-3 3 3-3 3"/></svg>
       </button>
+      <button class="tb-pen pen-text" id="penText" aria-pressed="false" title="Text (Größe wählen)">
+        <span class="pt-letter">T</span>
+      </button>
     </div>
 
     <!-- Farbpalette + Strichstärke (Popup unterhalb des Stift-Buttons) -->
@@ -320,6 +368,15 @@ button{font-family:inherit}
         <button class="pp-size" data-size="2" title="Dünn"><svg viewBox="0 0 32 12"><line x1="2" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
         <button class="pp-size selected" data-size="3" title="Mittel"><svg viewBox="0 0 32 12"><line x1="2" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
         <button class="pp-size" data-size="5" title="Dick"><svg viewBox="0 0 32 12"><line x1="2" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Text-Größen-Palette -->
+    <div class="text-palette" id="textPalette" role="dialog" aria-label="Textgröße">
+      <div class="tp-row">
+        <button class="tp-size" data-size="lg" title="Überschrift (groß)"><span class="tps-lg">T</span></button>
+        <button class="tp-size selected" data-size="md" title="Normal (mittel)"><span class="tps-md">T</span></button>
+        <button class="tp-size" data-size="sm" title="Beschriftung (klein)"><span class="tps-sm">T</span></button>
       </div>
     </div>
 
@@ -454,7 +511,7 @@ document.getElementById("btnTheme").addEventListener("click", ()=>{
 })();
 
 /* ZUSTAND */
-const STATE = { tokens:[], lines:[], mode:"select", schnitt:"angriff_oben", nextId:1, history:[] };
+const STATE = { tokens:[], lines:[], texts:[], mode:"select", schnitt:"angriff_oben", nextId:1, history:[] };
 
 /* History für Undo (max. 3 Schritte zurück) */
 function pushHistory(){
@@ -462,6 +519,7 @@ function pushHistory(){
   const snap = {
     tokens: STATE.tokens.map(t => Object.assign({}, t)),
     lines:  STATE.lines.map(l => Object.assign({}, l)),
+    texts:  STATE.texts.map(x => Object.assign({}, x)),
     schnitt: STATE.schnitt
   };
   STATE.history.push(snap);
@@ -473,6 +531,7 @@ function undo(){
   const snap = STATE.history.pop();
   STATE.tokens = snap.tokens;
   STATE.lines  = snap.lines;
+  STATE.texts  = snap.texts || [];
   if(snap.schnitt !== STATE.schnitt){
     STATE.schnitt = snap.schnitt;
     document.getElementById("selAusschnitt").value = snap.schnitt;
@@ -854,12 +913,17 @@ function renderBoard(){
       <marker id="arrShot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L 10 5 L 0 10 z" fill="var(--pen-shot)"/></marker>
     </defs>
     <g id="lines"></g>
+    <g id="texts"></g>
     <g id="tokens"></g>
   `;
   const linesG = board.querySelector("#lines");
   STATE.lines.forEach(l => linesG.appendChild(makeLineEl(l)));
+  const textsG = board.querySelector("#texts");
+  STATE.texts.forEach(x => textsG.appendChild(makeTextEl(x)));
   const tokG = board.querySelector("#tokens");
   STATE.tokens.forEach(t => tokG.appendChild(makeTokenEl(t)));
+  // Modus-Marker fürs Board (steuert per CSS Sichtbarkeit von Rahmen/Griffen)
+  board.setAttribute("data-text-mode", STATE.mode === "text" ? "true" : "false");
 }
 
 function makeTokenEl(t){
@@ -1163,26 +1227,58 @@ document.getElementById("labelInput").addEventListener("keydown",(ev)=>{
 /* MODES + STIFTE */
 let FREE_COLOR = "#000000";  // aktuell gewählte Farbe des freien Stifts
 let FREE_WIDTH = 3;          // aktuell gewählte Strichstärke
+let TEXT_SIZE = "md";        // aktuell gewählte Textgröße: "lg" | "md" | "sm"
 
 function setMode(m){
+  // Beim Verlassen des Text-Modus offene Edit-Sessions sauber beenden
+  if(STATE.mode === "text" && m !== "text") finishTextEditing();
   STATE.mode = m;
   document.getElementById("modeSelect").setAttribute("aria-pressed", m==="select");
-  ["penRun","penPass","penShot","penErase","penFree"].forEach(id=>{
-    document.getElementById(id).setAttribute("aria-pressed","false");
+  ["penRun","penPass","penShot","penErase","penFree","penText"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.setAttribute("aria-pressed","false");
   });
   if(m==="run")   document.getElementById("penRun").setAttribute("aria-pressed","true");
   if(m==="pass")  document.getElementById("penPass").setAttribute("aria-pressed","true");
   if(m==="shot")  document.getElementById("penShot").setAttribute("aria-pressed","true");
   if(m==="erase") document.getElementById("penErase").setAttribute("aria-pressed","true");
   if(m==="free")  document.getElementById("penFree").setAttribute("aria-pressed","true");
-  // Palette schließen, wenn Modus ein anderer ist
+  if(m==="text")  document.getElementById("penText").setAttribute("aria-pressed","true");
+  // Paletten schließen, wenn Modus ein anderer ist
   if(m !== "free") document.getElementById("penPalette").classList.remove("show");
+  if(m !== "text") document.getElementById("textPalette").classList.remove("show");
+  // Board-Marker fürs Text-Modus-CSS (Rahmen/Griffe sichtbar)
+  const board = document.getElementById("board");
+  if(board) board.setAttribute("data-text-mode", m === "text" ? "true" : "false");
 }
 document.getElementById("modeSelect").addEventListener("click", ()=>setMode("select"));
 document.getElementById("penRun").addEventListener("click",   ()=>setMode(STATE.mode==="run"   ? "select" : "run"));
 document.getElementById("penPass").addEventListener("click",  ()=>setMode(STATE.mode==="pass"  ? "select" : "pass"));
 document.getElementById("penShot").addEventListener("click",  ()=>setMode(STATE.mode==="shot"  ? "select" : "shot"));
 document.getElementById("penErase").addEventListener("click", ()=>setMode(STATE.mode==="erase" ? "select" : "erase"));
+
+/* Text-Werkzeug: analog zum freien Stift — Klick wechselt Modus + öffnet Größenpalette */
+document.getElementById("penText").addEventListener("click", ()=>{
+  const pal = document.getElementById("textPalette");
+  if(STATE.mode === "text"){
+    if(pal.classList.contains("show")){
+      pal.classList.remove("show");
+    } else {
+      setMode("select");
+    }
+  } else {
+    setMode("text");
+    pal.classList.add("show");
+  }
+});
+
+/* Textgrößen-Auswahl */
+document.querySelectorAll(".tp-size").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    TEXT_SIZE = btn.dataset.size;
+    document.querySelectorAll(".tp-size").forEach(b => b.classList.toggle("selected", b === btn));
+  });
+});
 
 /* Freier Stift: Klick wechselt in den Modus UND öffnet die Farbpalette.
    Erneuter Klick bei aktivem free-Modus schließt nur die Palette
@@ -1226,10 +1322,17 @@ document.querySelectorAll(".pp-size").forEach(btn => {
 /* STIFT-Zeichnen */
 let drawInfo = null;
 let eraseActive = false;  // Pointer ist im Radier-Modus gedrückt
+let textInfo = null;      // {action:"create"|"resize"|"move", ...}
 
 document.getElementById("board").addEventListener("pointerdown",(ev)=>{
   if(STATE.mode === "select") return;
   if(ev.target.closest(".tb-token")) return;
+
+  // TEXT-WERKZEUG: eigene Logik, dann fertig
+  if(STATE.mode === "text"){
+    handleTextPointerDown(ev);
+    return;
+  }
 
   // RADIERER: Snapshot, dann Linie unter Cursor löschen, Streich-Modus starten
   if(STATE.mode === "erase"){
@@ -1258,6 +1361,11 @@ document.getElementById("board").addEventListener("pointerdown",(ev)=>{
 });
 
 document.getElementById("board").addEventListener("pointermove",(ev)=>{
+  // Text-Werkzeug: eigene Move-Logik
+  if(STATE.mode === "text" && textInfo && ev.pointerId === textInfo.pointerId){
+    handleTextPointerMove(ev);
+    return;
+  }
   // Radierer: Streichen löscht jede berührte Linie
   if(STATE.mode === "erase" && eraseActive){
     eraseLineAt(ev.clientX, ev.clientY);
@@ -1276,6 +1384,11 @@ document.getElementById("board").addEventListener("pointermove",(ev)=>{
 });
 
 document.getElementById("board").addEventListener("pointerup",(ev)=>{
+  // Text-Werkzeug: eigene Up-Logik
+  if(STATE.mode === "text" && textInfo && ev.pointerId === textInfo.pointerId){
+    handleTextPointerUp(ev);
+    return;
+  }
   if(STATE.mode === "erase"){
     eraseActive = false;
     try{ document.getElementById("board").releasePointerCapture(ev.pointerId); }catch(e){}
@@ -1305,6 +1418,335 @@ function eraseLineAt(clientX, clientY){
   if(toRemove.size === 0) return;
   STATE.lines = STATE.lines.filter(l => !toRemove.has(l.id));
   renderBoard();
+}
+
+/* ===========================================================
+   TEXT-WERKZEUG
+   =========================================================== */
+
+const TEXT_DEFAULT_W = 160;
+const TEXT_DEFAULT_H = 48;
+const TEXT_MIN_W = 40;
+const TEXT_MIN_H = 22;
+const TEXT_DRAG_THRESHOLD = 6;  // SVG-Einheiten — darunter zählt es als Tap
+
+/* Rendering eines Text-Eintrags als <g> mit Rahmen, Body und 8 Resize-Griffen */
+function makeTextEl(x){
+  const SVG = "http://www.w3.org/2000/svg";
+  const g = document.createElementNS(SVG, "g");
+  g.setAttribute("class", "tb-textbox");
+  g.setAttribute("data-id", x.id);
+
+  // Klickfänger (Rect, der pointer-events fängt — nur im Text-Modus)
+  const rect = document.createElementNS(SVG, "rect");
+  rect.setAttribute("class","tb-textbox-rect");
+  rect.setAttribute("x", x.x); rect.setAttribute("y", x.y);
+  rect.setAttribute("width", x.w); rect.setAttribute("height", x.h);
+  g.appendChild(rect);
+
+  // Sichtbarer Rahmen (im Text-Modus per CSS gestrichelt sichtbar)
+  const frame = document.createElementNS(SVG, "rect");
+  frame.setAttribute("class","tb-textbox-frame");
+  frame.setAttribute("x", x.x); frame.setAttribute("y", x.y);
+  frame.setAttribute("width", x.w); frame.setAttribute("height", x.h);
+  g.appendChild(frame);
+
+  // Text in foreignObject (HTML mit Umbruch)
+  const fo = document.createElementNS(SVG, "foreignObject");
+  fo.setAttribute("x", x.x); fo.setAttribute("y", x.y);
+  fo.setAttribute("width", x.w); fo.setAttribute("height", x.h);
+  const div = document.createElement("div");
+  div.setAttribute("xmlns","http://www.w3.org/1999/xhtml");
+  div.className = "tb-textbox-body size-" + (x.size || "md");
+  div.textContent = x.text || "";
+  fo.appendChild(div);
+  g.appendChild(fo);
+
+  // 8 Resize-Griffe (nur im Text-Modus sichtbar)
+  const handleSize = 8;
+  const hs = [
+    ["nw", x.x,          x.y         ],
+    ["n",  x.x+x.w/2,    x.y         ],
+    ["ne", x.x+x.w,      x.y         ],
+    ["e",  x.x+x.w,      x.y+x.h/2   ],
+    ["se", x.x+x.w,      x.y+x.h     ],
+    ["s",  x.x+x.w/2,    x.y+x.h     ],
+    ["sw", x.x,          x.y+x.h     ],
+    ["w",  x.x,          x.y+x.h/2   ],
+  ];
+  hs.forEach(([dir, hx, hy])=>{
+    const h = document.createElementNS(SVG, "rect");
+    h.setAttribute("class", "tb-textbox-handle h-"+dir);
+    h.setAttribute("data-handle", dir);
+    h.setAttribute("x", hx - handleSize/2);
+    h.setAttribute("y", hy - handleSize/2);
+    h.setAttribute("width", handleSize);
+    h.setAttribute("height", handleSize);
+    g.appendChild(h);
+  });
+  return g;
+}
+
+/* Edit-Modus: Body editierbar machen */
+function startTextEditing(id){
+  finishTextEditing(); // andere offene Sessions beenden
+  const grp = document.querySelector(`#texts .tb-textbox[data-id="${id}"]`);
+  if(!grp) return;
+  const body = grp.querySelector(".tb-textbox-body");
+  if(!body) return;
+  body.setAttribute("contenteditable","true");
+  body.setAttribute("data-editing","true");
+  // Cursor ans Ende
+  body.focus();
+  try{
+    const range = document.createRange();
+    range.selectNodeContents(body);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }catch(e){}
+  // Bei Verlassen: Text übernehmen oder leere Box entfernen
+  body.addEventListener("blur", onTextBlur, { once:true });
+}
+
+function onTextBlur(ev){
+  const body = ev.target;
+  const grp = body.closest(".tb-textbox");
+  if(!grp) return;
+  body.removeAttribute("contenteditable");
+  body.removeAttribute("data-editing");
+  const id = +grp.getAttribute("data-id");
+  const tb = STATE.texts.find(t => t.id === id);
+  if(!tb) return;
+  const newText = body.textContent.trim();
+  if(newText.length === 0){
+    // Leer → Eintrag entfernen
+    STATE.texts = STATE.texts.filter(t => t.id !== id);
+    renderBoard();
+  } else if(newText !== tb.text){
+    tb.text = newText;
+  }
+}
+
+function finishTextEditing(){
+  const active = document.querySelector('.tb-textbox-body[contenteditable="true"]');
+  if(active) active.blur();
+}
+
+/* Pointer-Logik im Text-Modus */
+function handleTextPointerDown(ev){
+  ev.preventDefault();
+  const board = document.getElementById("board");
+  const target = ev.target;
+
+  // Klick auf Resize-Griff → Resize starten
+  const handle = target.closest(".tb-textbox-handle");
+  if(handle){
+    const grp = handle.closest(".tb-textbox");
+    const id = +grp.getAttribute("data-id");
+    const tb = STATE.texts.find(t => t.id === id);
+    if(!tb) return;
+    pushHistory();
+    const pt = clientToSvg(ev.clientX, ev.clientY);
+    textInfo = {
+      action: "resize",
+      pointerId: ev.pointerId,
+      id, dir: handle.getAttribute("data-handle"),
+      startPt: pt,
+      startBox: { x:tb.x, y:tb.y, w:tb.w, h:tb.h },
+      moved: false
+    };
+    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
+    return;
+  }
+
+  // Klick auf bestehenden Textrahmen (Rect oder Body)
+  const grp = target.closest(".tb-textbox");
+  if(grp){
+    const id = +grp.getAttribute("data-id");
+    const tb = STATE.texts.find(t => t.id === id);
+    if(!tb) return;
+    // Wenn bereits editierend, nichts tun (Klicks im Text-Body erlauben)
+    const body = grp.querySelector(".tb-textbox-body");
+    if(body && body.getAttribute("data-editing") === "true") return;
+    // Move starten — wird beim Up zu "Edit", wenn nicht bewegt wurde
+    const pt = clientToSvg(ev.clientX, ev.clientY);
+    textInfo = {
+      action: "move",
+      pointerId: ev.pointerId,
+      id,
+      startPt: pt,
+      startBox: { x:tb.x, y:tb.y, w:tb.w, h:tb.h },
+      moved: false,
+      historyPushed: false
+    };
+    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
+    return;
+  }
+
+  // Klick auf leere Stelle → neuen Rahmen anlegen (Tap oder Drag)
+  finishTextEditing();
+  const pt = clientToSvg(ev.clientX, ev.clientY);
+  textInfo = {
+    action: "create",
+    pointerId: ev.pointerId,
+    startPt: pt,
+    lastPt: pt,
+    moved: false,
+    historyPushed: false,
+    previewId: null
+  };
+  try{ board.setPointerCapture(ev.pointerId); }catch(e){}
+}
+
+function handleTextPointerMove(ev){
+  const pt = clientToSvg(ev.clientX, ev.clientY);
+
+  if(textInfo.action === "create"){
+    const dx = pt.x - textInfo.startPt.x;
+    const dy = pt.y - textInfo.startPt.y;
+    if(!textInfo.moved && (Math.abs(dx) > TEXT_DRAG_THRESHOLD || Math.abs(dy) > TEXT_DRAG_THRESHOLD)){
+      textInfo.moved = true;
+      // Beim Übergang zum Drag erst jetzt History sichern und Preview-Eintrag anlegen
+      if(!textInfo.historyPushed){ pushHistory(); textInfo.historyPushed = true; }
+      const newTb = {
+        id: STATE.nextId++,
+        text: "",
+        x: textInfo.startPt.x, y: textInfo.startPt.y,
+        w: 1, h: 1,
+        size: TEXT_SIZE
+      };
+      STATE.texts.push(newTb);
+      textInfo.previewId = newTb.id;
+      renderBoard();
+    }
+    if(textInfo.moved){
+      const tb = STATE.texts.find(t => t.id === textInfo.previewId);
+      if(!tb) return;
+      const x = Math.min(textInfo.startPt.x, pt.x);
+      const y = Math.min(textInfo.startPt.y, pt.y);
+      const w = Math.abs(pt.x - textInfo.startPt.x);
+      const h = Math.abs(pt.y - textInfo.startPt.y);
+      tb.x = x; tb.y = y; tb.w = w; tb.h = h;
+      updateTextElGeom(tb);
+    }
+    return;
+  }
+
+  if(textInfo.action === "move"){
+    const dx = pt.x - textInfo.startPt.x;
+    const dy = pt.y - textInfo.startPt.y;
+    if(!textInfo.moved && (Math.abs(dx) > TEXT_DRAG_THRESHOLD || Math.abs(dy) > TEXT_DRAG_THRESHOLD)){
+      textInfo.moved = true;
+      if(!textInfo.historyPushed){ pushHistory(); textInfo.historyPushed = true; }
+    }
+    if(textInfo.moved){
+      const tb = STATE.texts.find(t => t.id === textInfo.id);
+      if(!tb) return;
+      tb.x = textInfo.startBox.x + dx;
+      tb.y = textInfo.startBox.y + dy;
+      updateTextElGeom(tb);
+    }
+    return;
+  }
+
+  if(textInfo.action === "resize"){
+    const tb = STATE.texts.find(t => t.id === textInfo.id);
+    if(!tb) return;
+    const dx = pt.x - textInfo.startPt.x;
+    const dy = pt.y - textInfo.startPt.y;
+    let { x, y, w, h } = textInfo.startBox;
+    const d = textInfo.dir;
+    if(d.includes("e")) w = Math.max(TEXT_MIN_W, textInfo.startBox.w + dx);
+    if(d.includes("s")) h = Math.max(TEXT_MIN_H, textInfo.startBox.h + dy);
+    if(d.includes("w")){
+      const newW = Math.max(TEXT_MIN_W, textInfo.startBox.w - dx);
+      x = textInfo.startBox.x + (textInfo.startBox.w - newW);
+      w = newW;
+    }
+    if(d.includes("n")){
+      const newH = Math.max(TEXT_MIN_H, textInfo.startBox.h - dy);
+      y = textInfo.startBox.y + (textInfo.startBox.h - newH);
+      h = newH;
+    }
+    tb.x = x; tb.y = y; tb.w = w; tb.h = h;
+    updateTextElGeom(tb);
+    textInfo.moved = true;
+  }
+}
+
+function handleTextPointerUp(ev){
+  const board = document.getElementById("board");
+  try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
+
+  if(textInfo.action === "create"){
+    if(!textInfo.moved){
+      // Tap → Standardgröße, zentriert um Klickpunkt
+      if(!textInfo.historyPushed){ pushHistory(); textInfo.historyPushed = true; }
+      const newTb = {
+        id: STATE.nextId++,
+        text: "",
+        x: textInfo.startPt.x - TEXT_DEFAULT_W/2,
+        y: textInfo.startPt.y - TEXT_DEFAULT_H/2,
+        w: TEXT_DEFAULT_W, h: TEXT_DEFAULT_H,
+        size: TEXT_SIZE
+      };
+      STATE.texts.push(newTb);
+      renderBoard();
+      startTextEditing(newTb.id);
+    } else {
+      // Drag — Mindestgröße erzwingen
+      const tb = STATE.texts.find(t => t.id === textInfo.previewId);
+      if(tb){
+        if(tb.w < TEXT_MIN_W) tb.w = TEXT_MIN_W;
+        if(tb.h < TEXT_MIN_H) tb.h = TEXT_MIN_H;
+        renderBoard();
+        startTextEditing(tb.id);
+      }
+    }
+  } else if(textInfo.action === "move"){
+    if(!textInfo.moved){
+      // Reiner Klick auf bestehenden Rahmen → editieren
+      startTextEditing(textInfo.id);
+    }
+  }
+  // resize: nichts weiter zu tun
+
+  textInfo = null;
+}
+
+/* Geometrie eines Text-Eintrags im DOM live aktualisieren (ohne kompletten Re-Render) */
+function updateTextElGeom(tb){
+  const grp = document.querySelector(`#texts .tb-textbox[data-id="${tb.id}"]`);
+  if(!grp) return;
+  const rect = grp.querySelector(".tb-textbox-rect");
+  const frame = grp.querySelector(".tb-textbox-frame");
+  const fo = grp.querySelector("foreignObject");
+  [rect, frame, fo].forEach(el => {
+    if(!el) return;
+    el.setAttribute("x", tb.x);
+    el.setAttribute("y", tb.y);
+    el.setAttribute("width", tb.w);
+    el.setAttribute("height", tb.h);
+  });
+  const handleSize = 8;
+  const hs = {
+    nw: [tb.x,         tb.y         ],
+    n:  [tb.x+tb.w/2,  tb.y         ],
+    ne: [tb.x+tb.w,    tb.y         ],
+    e:  [tb.x+tb.w,    tb.y+tb.h/2  ],
+    se: [tb.x+tb.w,    tb.y+tb.h    ],
+    s:  [tb.x+tb.w/2,  tb.y+tb.h    ],
+    sw: [tb.x,         tb.y+tb.h    ],
+    w:  [tb.x,         tb.y+tb.h/2  ],
+  };
+  grp.querySelectorAll(".tb-textbox-handle").forEach(h => {
+    const dir = h.getAttribute("data-handle");
+    const [hx, hy] = hs[dir];
+    h.setAttribute("x", hx - handleSize/2);
+    h.setAttribute("y", hy - handleSize/2);
+  });
 }
 
 /* AUSSCHNITT */
@@ -1697,6 +2139,7 @@ document.getElementById("selPreset").addEventListener("change",(ev)=>{
   document.getElementById("selAusschnitt").value = p.schnitt;
   STATE.tokens = p.tokens.map(t => Object.assign({}, t, {id:STATE.nextId++, labelMode:"position"}));
   STATE.lines = [];
+  STATE.texts = [];
   renderBoard();
   ev.target.value = "";
 });
@@ -1710,10 +2153,10 @@ document.getElementById("btnClearLines").addEventListener("click", ()=>{
   }
 });
 document.getElementById("btnClearAll").addEventListener("click", ()=>{
-  if(!STATE.tokens.length && !STATE.lines.length) return;
+  if(!STATE.tokens.length && !STATE.lines.length && !STATE.texts.length) return;
   if(confirm("Komplettes Board leeren?")){
     pushHistory();
-    STATE.tokens = []; STATE.lines = []; renderBoard();
+    STATE.tokens = []; STATE.lines = []; STATE.texts = []; renderBoard();
   }
 });
 
@@ -1753,13 +2196,15 @@ document.getElementById("sdName").addEventListener("keydown",(ev)=>{
 });
 
 function saveCurrent(){
+  finishTextEditing(); // offene Bearbeitung übernehmen
   const name = (document.getElementById("sdName").value || "").trim()
             || ("Konstellation " + new Date().toLocaleString("de-DE"));
   const k = {
     id: "k_" + Date.now() + "_" + Math.floor(Math.random()*9999),
     name, schnitt: STATE.schnitt,
     tokens: STATE.tokens.map(t=>({kind:t.kind, label:t.label, labelMode:t.labelMode, x:t.x, y:t.y})),
-    lines:  STATE.lines.map(l=>({kind:l.kind, color:l.color, path:l.path})),
+    lines:  STATE.lines.map(l=>({kind:l.kind, color:l.color, path:l.path, width:l.width})),
+    texts:  STATE.texts.map(x=>({text:x.text, x:x.x, y:x.y, w:x.w, h:x.h, size:x.size})),
     gespeichert_am: new Date().toISOString(),
     plan_datum: null, rating: 0, kommentar: ""
   };
@@ -1856,7 +2301,7 @@ function saveCardHtml(k){
       <div style="flex:1;min-width:0">
         <div class="sc-name">${esc(k.name)}</div>
         <div class="sc-date">${esc(dat)}${planDate?" · geplant: "+esc(planDate):""}</div>
-        <div class="sc-meta">${esc(AUSSCHNITTE[k.schnitt]?.label || k.schnitt)} · ${k.tokens.length} Spieler · ${k.lines.length} Linien</div>
+        <div class="sc-meta">${esc(AUSSCHNITTE[k.schnitt]?.label || k.schnitt)} · ${k.tokens.length} Spieler · ${k.lines.length} Linien${(k.texts&&k.texts.length)?" · "+k.texts.length+" Texte":""}</div>
       </div>
       <div class="sc-actions">
         <div class="sc-stars" title="Bewertung">${sterne}</div>
@@ -1917,11 +2362,12 @@ window.setKonstFeld = function(id, feld, val){
 window.ladeKonstellation = function(id){
   const list = ladeAlle();
   const k = list.find(x=>x.id===id); if(!k) return;
-  if((STATE.tokens.length || STATE.lines.length) && !confirm("Aktuelles Board wird ersetzt. Fortfahren?")) return;
+  if((STATE.tokens.length || STATE.lines.length || STATE.texts.length) && !confirm("Aktuelles Board wird ersetzt. Fortfahren?")) return;
   STATE.schnitt = k.schnitt;
   document.getElementById("selAusschnitt").value = k.schnitt;
   STATE.tokens = k.tokens.map(t => Object.assign({}, t, {id:STATE.nextId++}));
   STATE.lines  = k.lines.map(l => Object.assign({}, l, {id:STATE.nextId++}));
+  STATE.texts  = (k.texts || []).map(x => Object.assign({}, x, {id:STATE.nextId++}));
   renderBoard();
   closeSave();
 };
@@ -1988,9 +2434,11 @@ document.getElementById("impFile").addEventListener("change", async (ev)=>{
 document.getElementById("btnPrint").addEventListener("click", druckeAktuelles);
 
 function druckeAktuelles(){
+  finishTextEditing();
   const def = AUSSCHNITTE[STATE.schnitt];
   const svgClone = document.getElementById("board").cloneNode(true);
   svgClone.removeAttribute("style"); svgClone.removeAttribute("class");
+  svgClone.querySelectorAll(".tb-textbox-handle, .tb-textbox-frame").forEach(el => el.remove());
   inlineSvgColors(svgClone);
   document.getElementById("printView").innerHTML = `
     <div class="pv-head">
@@ -1999,6 +2447,7 @@ function druckeAktuelles(){
         <span><b>Gedruckt:</b> ${new Date().toLocaleString("de-DE")}</span>
         <span><b>Spieler:</b> ${STATE.tokens.length}</span>
         <span><b>Linien:</b> ${STATE.lines.length}</span>
+        <span><b>Texte:</b> ${STATE.texts.length}</span>
       </div>
     </div>
     <div class="pv-board">${svgClone.outerHTML}</div>`;
@@ -2008,15 +2457,18 @@ function druckeAktuelles(){
 window.druckeKonst = function(id){
   const list = ladeAlle();
   const k = list.find(x=>x.id===id); if(!k) return;
-  const savedTokens = STATE.tokens, savedLines = STATE.lines, savedSchnitt = STATE.schnitt;
+  const savedTokens = STATE.tokens, savedLines = STATE.lines, savedTexts = STATE.texts, savedSchnitt = STATE.schnitt;
   STATE.schnitt = k.schnitt;
   STATE.tokens = k.tokens.map(t => Object.assign({}, t, {id:STATE.nextId++}));
   STATE.lines  = k.lines.map(l => Object.assign({}, l, {id:STATE.nextId++}));
+  STATE.texts  = (k.texts || []).map(x => Object.assign({}, x, {id:STATE.nextId++}));
   renderBoard();
   setTimeout(()=>{
     const def = AUSSCHNITTE[STATE.schnitt];
     const svgClone = document.getElementById("board").cloneNode(true);
     svgClone.removeAttribute("class"); svgClone.removeAttribute("style");
+    // Im gedruckten SVG: Rahmen/Griffe entfernen, damit auch ohne Print-CSS sauber
+    svgClone.querySelectorAll(".tb-textbox-handle, .tb-textbox-frame").forEach(el => el.remove());
     inlineSvgColors(svgClone);
     const dat = new Date(k.gespeichert_am).toLocaleString("de-DE");
     const planDate = k.plan_datum ? new Date(k.plan_datum).toLocaleDateString("de-DE") : "—";
@@ -2035,7 +2487,7 @@ window.druckeKonst = function(id){
       ${k.kommentar?`<div class="pv-foot"><div class="pv-comment"><b>Kommentar:</b> ${esc(k.kommentar)}</div></div>`:""}`;
     window.print();
     setTimeout(()=>{
-      STATE.tokens = savedTokens; STATE.lines = savedLines; STATE.schnitt = savedSchnitt;
+      STATE.tokens = savedTokens; STATE.lines = savedLines; STATE.texts = savedTexts; STATE.schnitt = savedSchnitt;
       document.getElementById("selAusschnitt").value = savedSchnitt;
       renderBoard();
     }, 200);
