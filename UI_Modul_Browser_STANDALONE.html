@@ -60,8 +60,8 @@
   .counter strong{color:var(--ink);font-weight:700}
   .theme-toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .theme-toggle button{background:var(--bg-elevated);border:0;padding:6px 9px;
-    cursor:pointer;color:var(--muted);display:flex;align-items:center}
-  .theme-toggle button[aria-pressed="true"]{background:var(--accent);color:#fff}
+    cursor:pointer;color:var(--ink-soft);display:flex;align-items:center}
+  .theme-toggle button:hover{color:var(--accent)}
   .theme-toggle svg{width:15px;height:15px;display:block}
 
   /* ---- Filterleiste (sticky unter Top-Bar) ---- */
@@ -586,14 +586,8 @@
         <button id="fsGross" aria-pressed="false" title="Schrift groß">A</button>
       </div>
       <div class="theme-toggle" role="group" aria-label="Theme">
-        <button id="thDark" aria-label="Dark Mode" aria-pressed="true" title="Dark Mode">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-        <button id="thLight" aria-label="Light Mode" aria-pressed="false" title="Light Mode">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        </button>
-        <button id="thMtv" aria-label="MTV Vereinsfarben" aria-pressed="false" title="MTV (Rot-Weiß)">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10z"/></svg>
+        <button id="thCycle" aria-label="Theme wechseln" title="Theme: Dark">
+          <svg id="thIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
         </button>
       </div>
     </div>
@@ -2003,22 +1997,34 @@ let VIZ_OK  = false;       // visuals_all.svg erfolgreich geladen?
 /* ===================================================================
    Theme-Umschaltung
    =================================================================== */
+const HB_THEMES = ["dark", "light", "mtv"];
 function setTheme(t){
   document.documentElement.setAttribute("data-theme", t);
-  document.getElementById("thDark").setAttribute("aria-pressed", t==="dark");
-  document.getElementById("thLight").setAttribute("aria-pressed", t==="light");
-  const mtvBtn = document.getElementById("thMtv");
-  if(mtvBtn) mtvBtn.setAttribute("aria-pressed", t==="mtv");
+  const btn = document.getElementById("thCycle");
+  const icon = document.getElementById("thIcon");
+  if(icon){
+    if(t === "dark"){
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    } else if(t === "light"){
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+    } else {
+      icon.innerHTML = '<path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10z" fill="currentColor" stroke="none"/>';
+    }
+  }
+  if(btn){
+    btn.setAttribute("title", "Theme: " + (t==="dark"?"Dark":t==="light"?"Light":"MTV (Rot-Weiß)"));
+  }
   try{ localStorage.setItem("hb_theme", t); }catch(e){}
 }
-document.getElementById("thDark").addEventListener("click", ()=>setTheme("dark"));
-document.getElementById("thLight").addEventListener("click", ()=>setTheme("light"));
-document.getElementById("thMtv")?.addEventListener("click", ()=>setTheme("mtv"));
+document.getElementById("thCycle").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme") || "dark";
+  const i = HB_THEMES.indexOf(cur);
+  setTheme(HB_THEMES[(i + 1) % HB_THEMES.length]);
+});
 (function(){
   let t="dark";
   try{ t = localStorage.getItem("hb_theme") || "dark"; }catch(e){}
-  // Falls jemals nur 2 Themes erlaubt waren und der gespeicherte Wert ungültig ist:
-  if(!["dark","light","mtv"].includes(t)) t = "dark";
+  if(!HB_THEMES.includes(t)) t = "dark";
   setTheme(t);
 })();
 
@@ -3081,7 +3087,8 @@ function renderStrictArea(panel, aktuell){
 }
 
 /* Filter-Zeile: Bereich/Subkategorie/Level/Intensität als Selects.
-   Defaults: jeweils aktueller Wert. */
+   Default: nur Bereich vorbelegt; Subkategorie/Level/Intensität auf "(alle)",
+   damit die Liste sofort breit ist und der Nutzer bei Bedarf zuschalten kann. */
 function renderFilterRow(panel, aktuell){
   const opt = GEN_LETZTE.optionen;
   const areas = ["aufwaermen","athletik","technik","taktik","uebungsspiel","kleine_spiele","torwart"];
@@ -3100,23 +3107,20 @@ function renderFilterRow(panel, aktuell){
     </label>
     <label>Subkategorie
       <select data-f="subcategory">
-        <option value="${esc(aktuell.subcategory)}" selected>${esc(SUB_LABELS[aktuell.subcategory]||aktuell.subcategory)}</option>
-        <option value="">(alle)</option>
-        ${subs.filter(s=>s!==aktuell.subcategory).map(s=>`<option value="${esc(s)}">${esc(SUB_LABELS[s]||s)}</option>`).join("")}
+        <option value="" selected>(alle)</option>
+        ${subs.map(s=>`<option value="${esc(s)}">${esc(SUB_LABELS[s]||s)}</option>`).join("")}
       </select>
     </label>
     <label>Level
       <select data-f="level">
-        <option value="${opt.level||''}" selected>${opt.level?('Level '+opt.level+' (Einheit)'):'(alle)'}</option>
-        <option value="">(alle)</option>
-        ${levels.filter(l=>l!==opt.level).map(l=>`<option value="${l}">Level ${l}</option>`).join("")}
+        <option value="" selected>(alle)</option>
+        ${levels.map(l=>`<option value="${l}">Level ${l}${opt.level===l?' (Einheit)':''}</option>`).join("")}
       </select>
     </label>
     <label>Intensität
       <select data-f="intensitaet">
-        <option value="${esc(opt.intensitaet||'')}" selected>${opt.intensitaet?(opt.intensitaet+' (Einheit)'):'(alle)'}</option>
-        <option value="">(alle)</option>
-        ${intens.filter(i=>i!==opt.intensitaet).map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join("")}
+        <option value="" selected>(alle)</option>
+        ${intens.map(i=>`<option value="${esc(i)}">${esc(i)}${opt.intensitaet===i?' (Einheit)':''}</option>`).join("")}
       </select>
     </label>
   `;
