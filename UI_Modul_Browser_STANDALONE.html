@@ -398,6 +398,27 @@
   .me-mod-line code{font-family:"IBM Plex Mono",monospace;
     font-size:calc(11px * var(--fs-scale,1));color:var(--accent);margin-right:6px}
   .me-mod-line .dur{color:var(--muted);font-weight:500;margin-left:6px}
+  /* Modul-Detail-Toggle in Einheiten-Liste */
+  .me-mod-row{display:flex;align-items:center;gap:6px;cursor:pointer;
+    padding:4px 0;border-bottom:1px dashed var(--line);
+    font-size:calc(12.5px * var(--fs-scale,1));color:var(--ink-soft)}
+  .me-mod-row:last-child{border-bottom:0}
+  .me-mod-row:hover{background:var(--bg-elevated)}
+  .me-mod-row code{font-family:"IBM Plex Mono",monospace;
+    font-size:calc(11px * var(--fs-scale,1));color:var(--accent);margin-right:4px}
+  .me-mod-row .dur{color:var(--muted);font-weight:500;margin-left:auto;margin-right:6px}
+  .me-mod-row .me-mod-toggle{flex-shrink:0;width:18px;height:18px;
+    display:inline-flex;align-items:center;justify-content:center;
+    color:var(--muted);transition:transform 0.15s ease}
+  .me-mod-row.open .me-mod-toggle{transform:rotate(90deg);color:var(--accent)}
+  .me-mod-row .me-mod-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .me-mod-detail{display:none;padding:8px 12px 12px 26px;
+    border-bottom:1px dashed var(--line);
+    font-size:calc(12.5px * var(--fs-scale,1));
+    background:var(--bg-elevated)}
+  .me-mod-detail.show{display:block}
+  .me-mod-detail .detail-desc,.me-mod-detail .detail-grid,
+  .me-mod-detail .detail-sec{margin-top:6px}
 
   .me-export{display:flex;gap:8px;justify-content:flex-end;
     padding-top:10px;border-top:1px solid var(--line);margin-top:10px}
@@ -2157,11 +2178,14 @@ function vizButton(m){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
       Visualisierung anzeigen
     </button>
-    <div class="viz-wrap" id="viz-${esc(m.id)}"></div>`;
+    <div class="viz-wrap"></div>`;
 }
 
 function toggleViz(btn, modId){
-  const wrap = document.getElementById("viz-"+modId);
+  // wrap ist immer der unmittelbare Sibling des Buttons — funktioniert auch,
+  // wenn dasselbe Modul mehrfach im DOM vorkommt (Modul-Tab + Meine Einheiten).
+  const wrap = btn.nextElementSibling;
+  if(!wrap || !wrap.classList.contains("viz-wrap")) return;
   if(wrap.classList.contains("show")){
     wrap.classList.remove("show");
     btn.lastChild.textContent = " Visualisierung anzeigen";
@@ -2534,8 +2558,45 @@ function einheitCardHtml(e, idx){
 function blockHtml(titel, mods){
   if(!mods || !mods.length) return "";
   const dauer = mods.reduce((s,m)=>s+(m.duration_min||0), 0);
-  return `<div class="block-head"><h2>${esc(titel)}</h2><span class="b-dauer">${dauer} min</span></div>`
-    + mods.map(m => `<div class="me-mod-line"><code>${esc(m.id)}</code>${esc(m.title)}<span class="dur">· ${m.duration_min} min</span></div>`).join("");
+  let h = `<div class="block-head"><h2>${esc(titel)}</h2><span class="b-dauer">${dauer} min</span></div>`;
+  mods.forEach(m => {
+    const detailId = "memod_" + Math.random().toString(36).slice(2, 10);
+    h += `<div class="me-mod-row" onclick="toggleMeModDetail(this, '${esc(m.id)}', '${detailId}')">
+        <span class="me-mod-toggle">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+        <code>${esc(m.id)}</code>
+        <span class="me-mod-title">${esc(m.title)}</span>
+        <span class="dur">${m.duration_min} min</span>
+      </div>
+      <div class="me-mod-detail" id="${detailId}"></div>`;
+  });
+  return h;
+}
+
+/* Modul-Detail in der Einheit-Liste ein-/ausklappen.
+   Lädt die vollständigen Modul-Daten aus MODULES per ID und nutzt detailHtml(). */
+function toggleMeModDetail(rowEl, modId, detailId){
+  const detailEl = document.getElementById(detailId);
+  if(!detailEl) return;
+  if(detailEl.classList.contains("show")){
+    detailEl.classList.remove("show");
+    rowEl.classList.remove("open");
+    return;
+  }
+  if(!detailEl.dataset.rendered){
+    const m = MODULES.find(x => x.id === modId);
+    if(!m){
+      detailEl.innerHTML = `<div class="detail-desc" style="color:var(--muted);font-style:italic">
+        Modul-Details nicht verfügbar (ID „${esc(modId)}" nicht im aktuellen Datenbestand).
+      </div>`;
+    } else {
+      detailEl.innerHTML = detailHtml(m);
+    }
+    detailEl.dataset.rendered = "1";
+  }
+  detailEl.classList.add("show");
+  rowEl.classList.add("open");
 }
 
 function toggleEinheit(headEl){ headEl.parentElement.classList.toggle("open"); }
