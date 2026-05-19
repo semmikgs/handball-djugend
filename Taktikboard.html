@@ -23,6 +23,15 @@
   --shadow:0 2px 8px rgba(60,40,20,0.08);
   --bg-overlay:rgba(20,15,10,0.5);
 }
+:root[data-theme="mtv"]{
+  --bg:#ffffff; --bg-elevated:#f7f7f7; --bg-elevated-2:#ededed;
+  --ink:#1a1a1a; --ink-soft:#3a3a3a; --muted:#6b6b6b;
+  --line:#e2e2e2; --line-strong:#c4c4c4;
+  --accent:#c8102e; --accent-2:#1d8fc7;
+  --good:#2e9e6e; --warn:#b8770d; --bad:#a30d24; --pur:#7a5dd6;
+  --shadow:0 2px 8px rgba(200,16,46,0.10);
+  --bg-overlay:rgba(40,15,15,0.5);
+}
 :root{
   --court-bg:#f4eee2; --court-line:#7a6e54; --court-line-thin:#a0916f;
   --att:#ff8a00; --def:#3ec1ff; --tw:#5dd39e; --ball:#ffd166;
@@ -553,27 +562,37 @@ button{font-family:inherit}
 "use strict";
 
 /* THEME */
+const TB_THEMES = ["dark", "light", "mtv"];
 function setTheme(t){
   document.documentElement.setAttribute("data-theme", t);
-  // Icon updaten: Mond im Dark-Mode, Sonne im Light-Mode
   const icon = document.getElementById("thIcon");
   if(icon){
     if(t === "dark"){
       // Mond
       icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-    } else {
+    } else if(t === "light"){
       // Sonne
       icon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+    } else {
+      // MTV — gefülltes Herz/Schild für Verein
+      icon.innerHTML = '<path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10z" fill="currentColor" stroke="none"/>';
     }
+  }
+  const btn = document.getElementById("btnTheme");
+  if(btn){
+    btn.setAttribute("title", "Theme: " + (t==="dark"?"Dark":t==="light"?"Light":"MTV (Rot-Weiß)"));
   }
   try{ localStorage.setItem("tb_theme", t); }catch(e){}
 }
 document.getElementById("btnTheme").addEventListener("click", ()=>{
   const cur = document.documentElement.getAttribute("data-theme") || "dark";
-  setTheme(cur === "dark" ? "light" : "dark");
+  const i = TB_THEMES.indexOf(cur);
+  const next = TB_THEMES[(i+1) % TB_THEMES.length];
+  setTheme(next);
 });
 (function(){
   let t="dark"; try{ t = localStorage.getItem("tb_theme") || "dark"; }catch(e){}
+  if(!TB_THEMES.includes(t)) t = "dark";
   setTheme(t);
 })();
 

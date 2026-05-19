@@ -28,6 +28,16 @@
     --code-bg:#efece5;
     --shadow:0 2px 8px rgba(60,40,20,0.08);
   }
+  :root[data-theme="mtv"]{
+    --bg:#ffffff; --bg-elevated:#f7f7f7; --bg-elevated-2:#ededed;
+    --bg-overlay:rgba(40,15,15,0.5);
+    --ink:#1a1a1a; --ink-soft:#3a3a3a; --muted:#6b6b6b;
+    --line:#e2e2e2; --line-strong:#c4c4c4;
+    --accent:#c8102e; --accent-2:#1d8fc7;
+    --good:#2e9e6e; --warn:#b8770d; --bad:#a30d24; --pur:#7a5dd6;
+    --code-bg:#f0f0f0;
+    --shadow:0 2px 8px rgba(200,16,46,0.10);
+  }
   /* Spielfeld bleibt in beiden Themes hell */
   :root{ --court-bg:#f4eee2; }
 
@@ -581,6 +591,9 @@
         </button>
         <button id="thLight" aria-label="Light Mode" aria-pressed="false" title="Light Mode">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+        <button id="thMtv" aria-label="MTV Vereinsfarben" aria-pressed="false" title="MTV (Rot-Weiß)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10z"/></svg>
         </button>
       </div>
     </div>
@@ -1994,13 +2007,18 @@ function setTheme(t){
   document.documentElement.setAttribute("data-theme", t);
   document.getElementById("thDark").setAttribute("aria-pressed", t==="dark");
   document.getElementById("thLight").setAttribute("aria-pressed", t==="light");
+  const mtvBtn = document.getElementById("thMtv");
+  if(mtvBtn) mtvBtn.setAttribute("aria-pressed", t==="mtv");
   try{ localStorage.setItem("hb_theme", t); }catch(e){}
 }
 document.getElementById("thDark").addEventListener("click", ()=>setTheme("dark"));
 document.getElementById("thLight").addEventListener("click", ()=>setTheme("light"));
+document.getElementById("thMtv")?.addEventListener("click", ()=>setTheme("mtv"));
 (function(){
   let t="dark";
   try{ t = localStorage.getItem("hb_theme") || "dark"; }catch(e){}
+  // Falls jemals nur 2 Themes erlaubt waren und der gespeicherte Wert ungültig ist:
+  if(!["dark","light","mtv"].includes(t)) t = "dark";
   setTheme(t);
 })();
 
