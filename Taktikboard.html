@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="dark">
+<html lang="de" data-theme="mtv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -598,8 +598,8 @@ document.getElementById("btnTheme").addEventListener("click", ()=>{
   setTheme(next);
 });
 (function(){
-  let t="dark"; try{ t = localStorage.getItem("tb_theme") || "dark"; }catch(e){}
-  if(!TB_THEMES.includes(t)) t = "dark";
+  let t="mtv"; try{ t = localStorage.getItem("tb_theme") || "mtv"; }catch(e){}
+  if(!TB_THEMES.includes(t)) t = "mtv";
   setTheme(t);
 })();
 

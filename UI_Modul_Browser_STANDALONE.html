@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="dark">
+<html lang="de" data-theme="mtv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -2022,9 +2022,9 @@ document.getElementById("thCycle").addEventListener("click", ()=>{
   setTheme(HB_THEMES[(i + 1) % HB_THEMES.length]);
 });
 (function(){
-  let t="dark";
-  try{ t = localStorage.getItem("hb_theme") || "dark"; }catch(e){}
-  if(!HB_THEMES.includes(t)) t = "dark";
+  let t="mtv";
+  try{ t = localStorage.getItem("hb_theme") || "mtv"; }catch(e){}
+  if(!HB_THEMES.includes(t)) t = "mtv";
   setTheme(t);
 })();
 
