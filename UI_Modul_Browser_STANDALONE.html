@@ -257,6 +257,62 @@
   .addon-vorschlag-list code{font-family:"IBM Plex Mono",monospace;font-size:11.5px;
     color:var(--accent)}
 
+  /* Modul-Tausch im Generator */
+  .gen-mod-wrap{position:relative}
+  .swap-btn{position:absolute;top:8px;right:8px;z-index:5;
+    background:var(--bg-elevated-2,var(--bg));border:1px solid var(--line);
+    color:var(--ink-soft);border-radius:6px;cursor:pointer;
+    width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+    transition:background-color 0.15s,border-color 0.15s,color 0.15s}
+  .swap-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .swap-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .swap-btn svg{width:16px;height:16px}
+  .swap-panel{display:none;background:var(--bg-elevated);
+    border:1px solid var(--accent);border-radius:9px;
+    padding:12px 14px;margin:6px 0 14px}
+  .swap-panel.show{display:block}
+  .swap-panel .sp-head{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin-bottom:8px}
+  .swap-panel .sp-replacing{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+  .swap-panel .sp-replacing code{font-family:"IBM Plex Mono",monospace;color:var(--accent)}
+  .swap-strict{background:var(--bg);border:1px dashed var(--accent);
+    border-radius:7px;padding:10px;display:flex;align-items:center;gap:10px;
+    margin-bottom:12px;flex-wrap:wrap}
+  .swap-strict .ss-label{font-size:11px;color:var(--accent);font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase}
+  .swap-strict .ss-mod{flex:1;font-size:13px;color:var(--ink);min-width:160px}
+  .swap-strict .ss-mod code{font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;color:var(--accent);margin-right:5px}
+  .swap-strict .ss-empty{color:var(--muted);font-style:italic;font-size:12.5px}
+  .swap-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+    font-size:12px;color:var(--ink-soft)}
+  .swap-filter label{display:flex;flex-direction:column;gap:3px}
+  .swap-filter select{background:var(--bg);border:1px solid var(--line);
+    color:var(--ink);padding:4px 6px;border-radius:5px;font-size:12px;
+    font-family:inherit}
+  .swap-list{max-height:280px;overflow-y:auto;border:1px solid var(--line);
+    border-radius:6px;background:var(--bg)}
+  .swap-list-empty{padding:14px;text-align:center;color:var(--muted);font-style:italic;font-size:12.5px}
+  .swap-item{display:flex;align-items:center;gap:8px;padding:7px 10px;
+    border-bottom:1px solid var(--line);cursor:pointer;font-size:12.5px;color:var(--ink-soft)}
+  .swap-item:last-child{border-bottom:0}
+  .swap-item:hover{background:var(--bg-elevated)}
+  .swap-item code{font-family:"IBM Plex Mono",monospace;font-size:11px;
+    color:var(--accent);flex-shrink:0}
+  .swap-item .si-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .swap-item .si-dur{color:var(--muted);font-size:11.5px;flex-shrink:0}
+  .swap-item .si-diff{font-size:11px;font-weight:700;flex-shrink:0;
+    padding:1px 5px;border-radius:3px;display:inline-flex;align-items:center;gap:2px}
+  .swap-item .si-diff.pos{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+  .swap-item .si-diff.neg{background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good)}
+  .swap-item .si-diff.zero{background:var(--bg-elevated);color:var(--muted)}
+  .dauer-delta{display:inline-block;font-size:13px;font-weight:700;
+    margin-left:8px;padding:2px 8px;border-radius:5px;
+    animation:fadeOut 4s forwards}
+  .dauer-delta.pos{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+  .dauer-delta.neg{background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good)}
+  @keyframes fadeOut{0%,75%{opacity:1}100%{opacity:0}}
+
   /* ===================================================================
      Schriftgrößen-Skalierung (klein/mittel/groß)
      CSS-Variable --fs-scale skaliert alle font-size-Werte
@@ -1870,9 +1926,12 @@
     generate: generate,
     DEFAULTS: DEFAULTS,
     HAUPTTEIL_BEREICHE: HAUPTTEIL_BEREICHE,
-    // intern, aber für Tests nützlich:
+    // intern, aber für Tausch-Feature & Tests nützlich:
     _makeRng: makeRng,
-    _weightedPick: weightedPick
+    _weightedPick: weightedPick,
+    _grundgewicht: grundgewicht,
+    _passtLevel: passtLevel,
+    _passtIntensitaet: passtIntensitaet
   };
 
   if (typeof module !== "undefined" && module.exports) {
@@ -2855,7 +2914,20 @@ function zeigeEinheit(e){
       <h2>${esc(titel)}</h2>
       <span class="b-dauer">${blk.dauer} min · ${blk.module.length} Module</span>
     </div>`;
-    blk.module.forEach(m => { html += cardHtml(m); });
+    blk.module.forEach((m, idx) => {
+      html += `<div class="gen-mod-wrap" data-block="${b}" data-idx="${idx}">
+        <button class="swap-btn" title="Modul tauschen" onclick="toggleSwapPanel(this, '${b}', ${idx})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9"/>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+        </button>
+        ${cardHtml(m)}
+        <div class="swap-panel" data-swap-panel></div>
+      </div>`;
+    });
   });
 
   out.innerHTML = html;
@@ -2885,6 +2957,227 @@ function speichereEinheit(){
   const orig = btn.textContent;
   btn.textContent = "✓ Gespeichert";
   setTimeout(()=>{ btn.textContent = orig; }, 1500);
+}
+
+/* ===================================================================
+   MODUL-TAUSCHEN (im Generator-Tab)
+   =================================================================== */
+
+/* Kandidaten-Suche: gibt sortierte Modul-Liste zurück, abzgl. der bereits
+   in der Einheit verwendeten Module. Filter:
+     filterOpt = { area, subcategory, level, intensitaet } — Werte oder null
+   level/intensitaet=null bedeutet "kein Filter". */
+function findeSwapKandidaten(currentModul, filterOpt){
+  if(!GEN_LETZTE) return [];
+  const opt = GEN_LETZTE.optionen;
+  const usedIds = new Set([
+    ...GEN_LETZTE.aufwaermen.map(m=>m.id),
+    ...GEN_LETZTE.hauptteil.map(m=>m.id),
+    ...GEN_LETZTE.ausklang.map(m=>m.id)
+  ]);
+  const kand = MODULES.filter(m => {
+    if(usedIds.has(m.id)) return false;
+    if(filterOpt.area && m.area !== filterOpt.area) return false;
+    if(filterOpt.subcategory && m.subcategory !== filterOpt.subcategory) return false;
+    if(filterOpt.level !== null && filterOpt.level !== undefined){
+      if(m.level !== filterOpt.level) return false;
+    }
+    if(filterOpt.intensitaet && m.intensity !== filterOpt.intensitaet) return false;
+    return true;
+  });
+  // Nach Generator-Gewicht absteigend sortieren
+  const gewicht = Generator._grundgewicht;
+  return kand.slice().sort((a,b) => gewicht(b, opt) - gewicht(a, opt));
+}
+
+/* Tausch-Panel öffnen/schließen, befüllt es bei Bedarf */
+function toggleSwapPanel(btn, block, idx){
+  const wrap = btn.closest(".gen-mod-wrap");
+  const panel = wrap.querySelector("[data-swap-panel]");
+  if(panel.classList.contains("show")){
+    panel.classList.remove("show");
+    btn.classList.remove("active");
+    return;
+  }
+  // Andere offene Panels schließen
+  document.querySelectorAll(".swap-panel.show").forEach(p => {
+    p.classList.remove("show");
+    const otherWrap = p.closest(".gen-mod-wrap");
+    if(otherWrap) otherWrap.querySelector(".swap-btn")?.classList.remove("active");
+  });
+  rendereSwapPanel(panel, block, idx);
+  panel.classList.add("show");
+  btn.classList.add("active");
+}
+
+/* Komplettes Tausch-Panel rendern (Header + Strikt-Vorschlag + Filter + Liste) */
+function rendereSwapPanel(panel, block, idx){
+  const aktuell = GEN_LETZTE[block][idx];
+  if(!aktuell){ panel.innerHTML = ""; return; }
+  panel.dataset.block = block;
+  panel.dataset.idx = idx;
+  panel.innerHTML = `
+    <div class="sp-head">Modul tauschen</div>
+    <div class="sp-replacing">Ersetze: <code>${esc(aktuell.id)}</code> ${esc(aktuell.title)} · ${aktuell.duration_min} min</div>
+    <div data-strict-area></div>
+    <div class="swap-filter" data-filter-row></div>
+    <div class="swap-list" data-list></div>
+  `;
+  renderStrictArea(panel, aktuell);
+  renderFilterRow(panel, aktuell);
+  renderSwapList(panel, aktuell);
+}
+
+/* Strikt-Vorschlag oben: gleiche area + subcategory, Level- und Intensitäts-Filter
+   aus den Einheit-Optionen. Falls leer: Fallback auf gleiche area allein. */
+function renderStrictArea(panel, aktuell){
+  const opt = GEN_LETZTE.optionen;
+  const baseFilter = {
+    area: aktuell.area,
+    subcategory: aktuell.subcategory,
+    level: opt.level,
+    intensitaet: opt.intensitaet
+  };
+  let strict = findeSwapKandidaten(aktuell, baseFilter);
+  let hinweis = "";
+  if(!strict.length){
+    // Fallback: Subcategory weglassen
+    strict = findeSwapKandidaten(aktuell, { area: aktuell.area, subcategory:null, level:opt.level, intensitaet:opt.intensitaet });
+    if(strict.length) hinweis = " (keine passende Subkategorie — daher gleicher Bereich)";
+  }
+  const area = panel.querySelector("[data-strict-area]");
+  if(!strict.length){
+    area.innerHTML = `<div class="swap-strict">
+      <div class="ss-label">Strikt</div>
+      <div class="ss-empty">Kein automatischer Vorschlag verfügbar.</div>
+    </div>`;
+    return;
+  }
+  const top = strict[0];
+  const diff = top.duration_min - aktuell.duration_min;
+  area.innerHTML = `<div class="swap-strict">
+    <div class="ss-label">Strikt-Vorschlag${esc(hinweis)}</div>
+    <div class="ss-mod"><code>${esc(top.id)}</code>${esc(top.title)} · ${top.duration_min} min ${diffBadgeHtml(diff)}</div>
+    <button class="tb-action primary" onclick="fuehreSwapAus('${esc(top.id)}')">Diesen nehmen</button>
+  </div>`;
+}
+
+/* Filter-Zeile: Bereich/Subkategorie/Level/Intensität als Selects.
+   Defaults: jeweils aktueller Wert. */
+function renderFilterRow(panel, aktuell){
+  const opt = GEN_LETZTE.optionen;
+  const areas = ["aufwaermen","athletik","technik","taktik","uebungsspiel","kleine_spiele","torwart"];
+  const subs = Array.from(new Set(MODULES.map(m => m.subcategory).filter(Boolean))).sort();
+  const levels = [1,2,3,4];
+  const intens = ["niedrig","mittel","hoch"];
+
+  const row = panel.querySelector("[data-filter-row]");
+  row.innerHTML = `
+    <label>Bereich
+      <select data-f="area">
+        <option value="${esc(aktuell.area)}" selected>${esc(AREA_LABELS[aktuell.area]||aktuell.area)}</option>
+        <option value="">(alle)</option>
+        ${areas.filter(a=>a!==aktuell.area).map(a=>`<option value="${esc(a)}">${esc(AREA_LABELS[a]||a)}</option>`).join("")}
+      </select>
+    </label>
+    <label>Subkategorie
+      <select data-f="subcategory">
+        <option value="${esc(aktuell.subcategory)}" selected>${esc(SUB_LABELS[aktuell.subcategory]||aktuell.subcategory)}</option>
+        <option value="">(alle)</option>
+        ${subs.filter(s=>s!==aktuell.subcategory).map(s=>`<option value="${esc(s)}">${esc(SUB_LABELS[s]||s)}</option>`).join("")}
+      </select>
+    </label>
+    <label>Level
+      <select data-f="level">
+        <option value="${opt.level||''}" selected>${opt.level?('Level '+opt.level+' (Einheit)'):'(alle)'}</option>
+        <option value="">(alle)</option>
+        ${levels.filter(l=>l!==opt.level).map(l=>`<option value="${l}">Level ${l}</option>`).join("")}
+      </select>
+    </label>
+    <label>Intensität
+      <select data-f="intensitaet">
+        <option value="${esc(opt.intensitaet||'')}" selected>${opt.intensitaet?(opt.intensitaet+' (Einheit)'):'(alle)'}</option>
+        <option value="">(alle)</option>
+        ${intens.filter(i=>i!==opt.intensitaet).map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join("")}
+      </select>
+    </label>
+  `;
+  row.querySelectorAll("select").forEach(sel => {
+    sel.addEventListener("change", ()=> renderSwapList(panel, aktuell));
+  });
+}
+
+/* Liste der Kandidaten gemäß aktueller Filter-Auswahl */
+function renderSwapList(panel, aktuell){
+  const f = {};
+  panel.querySelectorAll("[data-filter-row] select").forEach(sel => {
+    const key = sel.dataset.f;
+    const val = sel.value;
+    if(key === "level") f[key] = val ? parseInt(val,10) : null;
+    else f[key] = val || null;
+  });
+  const list = findeSwapKandidaten(aktuell, f);
+  const listEl = panel.querySelector("[data-list]");
+  if(!list.length){
+    listEl.innerHTML = `<div class="swap-list-empty">Keine Module entsprechen den Filtern.</div>`;
+    return;
+  }
+  // Max. 60 anzeigen, um UI flüssig zu halten
+  const shown = list.slice(0, 60);
+  listEl.innerHTML = shown.map(m => {
+    const diff = m.duration_min - aktuell.duration_min;
+    return `<div class="swap-item" onclick="fuehreSwapAus('${esc(m.id)}')">
+      <code>${esc(m.id)}</code>
+      <span class="si-title">${esc(m.title)}</span>
+      <span class="si-dur">${m.duration_min} min</span>
+      ${diffBadgeHtml(diff)}
+    </div>`;
+  }).join("") + (list.length > shown.length ? `<div class="swap-list-empty">… ${list.length - shown.length} weitere durch Filter eingrenzen</div>` : "");
+}
+
+function diffBadgeHtml(diff){
+  if(diff === 0) return `<span class="si-diff zero">±0</span>`;
+  const cls = diff > 0 ? "pos" : "neg";
+  const sign = diff > 0 ? "+" : "";
+  return `<span class="si-diff ${cls}">⏱ ${sign}${diff}</span>`;
+}
+
+/* Tausch ausführen: ersetzt das offene Modul durch das ausgewählte,
+   aktualisiert GEN_LETZTE, Gesamtdauer, blende Delta-Markierung ein. */
+function fuehreSwapAus(neueId){
+  if(!GEN_LETZTE) return;
+  // offenes Panel ermitteln
+  const panel = document.querySelector(".swap-panel.show");
+  if(!panel) return;
+  const block = panel.dataset.block;
+  const idx = parseInt(panel.dataset.idx, 10);
+  const alt = GEN_LETZTE[block][idx];
+  const neu = MODULES.find(m => m.id === neueId);
+  if(!alt || !neu) return;
+  const diff = (neu.duration_min || 0) - (alt.duration_min || 0);
+  // Ersetzen in flacher Liste UND im bloecke-Objekt (beide werden im Render genutzt)
+  GEN_LETZTE[block][idx] = neu;
+  GEN_LETZTE.bloecke[block].module[idx] = neu;
+  // Block-Dauer + Gesamt-Dauer neu rechnen
+  GEN_LETZTE.bloecke[block].dauer = GEN_LETZTE.bloecke[block].module.reduce((s,m)=>s+(m.duration_min||0), 0);
+  GEN_LETZTE.gesamt_dauer =
+    GEN_LETZTE.bloecke.aufwaermen.module.reduce((s,m)=>s+(m.duration_min||0),0) +
+    GEN_LETZTE.bloecke.hauptteil.module.reduce( (s,m)=>s+(m.duration_min||0),0) +
+    GEN_LETZTE.bloecke.ausklang.module.reduce(  (s,m)=>s+(m.duration_min||0),0);
+  GEN_LETZTE.abweichung = GEN_LETZTE.gesamt_dauer - GEN_LETZTE.ziel_dauer;
+  // Re-render
+  zeigeEinheit(GEN_LETZTE);
+  // Delta-Markierung neben Gesamtdauer
+  if(diff !== 0){
+    const dauerEl = document.querySelector(".einheit-dauer");
+    if(dauerEl){
+      const span = document.createElement("span");
+      span.className = "dauer-delta " + (diff > 0 ? "pos" : "neg");
+      span.textContent = (diff > 0 ? "▲ +" : "▼ ") + diff + " min";
+      dauerEl.appendChild(span);
+      setTimeout(()=>{ if(span.parentNode) span.parentNode.removeChild(span); }, 4200);
+    }
+  }
 }
 
 /* ===================================================================
