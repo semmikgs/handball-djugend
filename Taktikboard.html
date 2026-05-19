@@ -35,7 +35,10 @@
 :root{
   --court-bg:#f4eee2; --court-line:#7a6e54; --court-line-thin:#a0916f;
   --att:#ff8a00; --def:#3ec1ff; --tw:#5dd39e; --ball:#ffd166;
-  --pen-run:#ff8a00; --pen-pass:#3ec1ff; --pen-shot:#ef476f;
+  --pen-run:#ff8a00;            /* Angreifer-Laufweg: orange, durchgezogen */
+  --pen-rund:#3ec1ff;            /* Verteidiger-Laufweg: blau, durchgezogen */
+  --pen-pass:#2ea043;            /* Pass: grasgrün, gestrichelt */
+  --pen-shot:#c8102e;            /* Torwurf: vereinsrot, gepunktet */
   --pen-free:#000000;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -93,6 +96,7 @@ button{font-family:inherit}
 .tb-pen:hover{background:var(--bg-elevated-2)}
 .tb-pen[aria-pressed="true"]{background:var(--bg-elevated-2);box-shadow:inset 0 -3px 0 currentColor}
 .tb-pen.pen-run{color:var(--pen-run)}
+.tb-pen.pen-rund{color:var(--pen-rund)}
 .tb-pen.pen-pass{color:var(--pen-pass)}
 .tb-pen.pen-shot{color:var(--pen-shot)}
 .tb-pen.pen-erase{color:var(--muted)}
@@ -360,14 +364,17 @@ button{font-family:inherit}
     </div>
 
     <div class="tb-group" role="group" aria-label="Stift">
-      <button class="tb-pen pen-run" id="penRun" aria-pressed="false" title="Laufweg">
+      <button class="tb-pen pen-run" id="penRun" aria-pressed="false" title="Angreifer-Laufweg (orange)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h14"/><path d="M14 6l6 6-6 6"/></svg>
       </button>
-      <button class="tb-pen pen-pass" id="penPass" aria-pressed="false" title="Pass">
+      <button class="tb-pen pen-rund" id="penRunDef" aria-pressed="false" title="Verteidiger-Laufweg (blau)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h14"/><path d="M14 6l6 6-6 6"/></svg>
+      </button>
+      <button class="tb-pen pen-pass" id="penPass" aria-pressed="false" title="Pass (grün, gestrichelt)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="3 2.5"><path d="M4 12h14"/><path d="M14 6l6 6-6 6" stroke-dasharray="0"/></svg>
       </button>
-      <button class="tb-pen pen-shot" id="penShot" aria-pressed="false" title="Wurf">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M4 12h14"/><path d="M14 6l6 6-6 6"/></svg>
+      <button class="tb-pen pen-shot" id="penShot" aria-pressed="false" title="Torwurf (rot, gepunktet)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 3.5"><path d="M4 12h14"/><path d="M14 6l6 6-6 6" stroke-dasharray="0"/></svg>
       </button>
       <button class="tb-pen pen-erase" id="penErase" aria-pressed="false" title="Linie löschen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21L3 17 14 6l4 4z"/><path d="M17 9l4 4"/></svg>
@@ -808,7 +815,7 @@ const POOL_ATT  = ["LA","RA","RL","RR","RM","KM"];
 const POOL_DEF  = ["1","2","3","4","5","6"];
 const POOL_TW   = ["TW"];
 const POOL_TH   = ["TH"];   // Trainingshelfer
-const POOL_SUB  = ["W1","W2","W3","W4","W5"];
+const POOL_SUB  = ["W1","W2"];
 const POOL_BALL = ["B","Medi"];
 const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte"];
 
@@ -888,10 +895,12 @@ function tokenSvg(kind, label, opts){
                 fill="#fff" font-weight="700" opacity="0.9">MATTE</text>`;
     }
     case "ring": {
-      // Gymnastikreifen: Doppelkreis (Ring), gelb
-      return `<circle r="${r*0.95}" fill="none" stroke="#facc15" stroke-width="${r*0.22}"/>
-              <circle r="${r*0.95}" fill="none" stroke="#854d0e" stroke-width="1.5"/>
-              <circle r="${r*0.73}" fill="none" stroke="#854d0e" stroke-width="1.5"/>`;
+      // Gymnastikreifen: Doppelkreis (Ring), Farbe durchschaltbar wie Hütchen
+      const c  = opts.color     || "#e85d2a";
+      const cd = opts.colorDark || "#7a2a0a";
+      return `<circle r="${r*0.95}" fill="none" stroke="${c}" stroke-width="${r*0.22}"/>
+              <circle r="${r*0.95}" fill="none" stroke="${cd}" stroke-width="1.5"/>
+              <circle r="${r*0.73}" fill="none" stroke="${cd}" stroke-width="1.5"/>`;
     }
     case "figur": {
       // Aufblasbare Freistoßfigur: aufrechtes "Strichmännchen" stilisiert
@@ -995,6 +1004,7 @@ function renderBoard(){
     <g id="pitch">${def.pitch()}</g>
     <defs>
       <marker id="arrRun" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L 10 5 L 0 10 z" fill="var(--pen-run)"/></marker>
+      <marker id="arrRund" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L 10 5 L 0 10 z" fill="var(--pen-rund)"/></marker>
       <marker id="arrPass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L 10 5 L 0 10 z" fill="var(--pen-pass)"/></marker>
       <marker id="arrShot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L 10 5 L 0 10 z" fill="var(--pen-shot)"/></marker>
     </defs>
@@ -1037,16 +1047,24 @@ function makeLineEl(l){
   p.setAttribute("stroke-linejoin","round");
   p.setAttribute("data-id", l.id);
   if(l.kind === "shot"){
-    p.setAttribute("stroke-width","6");
+    // Torwurf: vereinsrot, gepunktet
+    p.setAttribute("stroke-width","5");
+    p.setAttribute("stroke-dasharray","0.1 9");
     p.setAttribute("marker-end","url(#arrShot)");
   } else if(l.kind === "pass"){
+    // Pass: grün, gestrichelt
     p.setAttribute("stroke-width","4");
     p.setAttribute("stroke-dasharray","12 8");
     p.setAttribute("marker-end","url(#arrPass)");
+  } else if(l.kind === "rund"){
+    // Verteidiger-Laufweg: blau, durchgezogen
+    p.setAttribute("stroke-width","4");
+    p.setAttribute("marker-end","url(#arrRund)");
   } else if(l.kind === "free"){
     // freier Stift: durchgezogen, gewählte Strichstärke (Default 3), ohne Pfeilspitze
     p.setAttribute("stroke-width", String(l.width || 3));
   } else {
+    // Angreifer-Laufweg (run)
     p.setAttribute("stroke-width","4");
     p.setAttribute("marker-end","url(#arrRun)");
   }
@@ -1203,8 +1221,8 @@ function handleTokenLongAction(tok, targetEl){
     renderBoard();
     return;
   }
-  // Hütchen: Farbe durchschalten (Rot → Gelb → Grün → Blau → Rot)
-  if(tok.kind === "huetchen"){
+  // Hütchen + Ring: Farbe durchschalten (Rot → Gelb → Grün → Blau → Rot)
+  if(tok.kind === "huetchen" || tok.kind === "ring"){
     const COLORS = [
       {color:"#e85d2a", dark:"#7a2a0a"},
       {color:"#facc15", dark:"#854d0e"},
@@ -1220,8 +1238,8 @@ function handleTokenLongAction(tok, targetEl){
     renderBoard();
     return;
   }
-  // Pylon/TH/Ring/Figur/Medi: keine Doppelklick-Aktion
-  if(["pylon","th","ring","figur","medi"].includes(tok.kind)) return;
+  // Pylon/TH/Figur/Medi: keine Doppelklick-Aktion
+  if(["pylon","th","figur","medi"].includes(tok.kind)) return;
   // Spieler: erst Position↔Nummer toggeln, beim zweiten Long-Press Editor öffnen
   if(lastDoubleTokenId === tok.id){
     oeffneLabelEditor(tok, targetEl);
@@ -1274,7 +1292,7 @@ function oeffneLabelEditor(tok, tokenEl){
       num: ["1","2","3","4","5","6"]
     },
     "tw":  { pos: ["TW","TW2"] },
-    "sub": { pos: ["W1","W2","W3","W4","W5","E"] },
+    "sub": { pos: ["W1","W2","E"] },
     "ball":{ pos: ["B","B2","B3"] }
   };
   const q = QUICK[tok.kind] || {};
@@ -1352,11 +1370,12 @@ function setMode(m){
   if(STATE.mode === "text" && m !== "text") finishTextEditing();
   STATE.mode = m;
   document.getElementById("modeSelect").setAttribute("aria-pressed", m==="select");
-  ["penRun","penPass","penShot","penErase","penFree","penText"].forEach(id=>{
+  ["penRun","penRunDef","penPass","penShot","penErase","penFree","penText"].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.setAttribute("aria-pressed","false");
   });
   if(m==="run")   document.getElementById("penRun").setAttribute("aria-pressed","true");
+  if(m==="rund")  document.getElementById("penRunDef").setAttribute("aria-pressed","true");
   if(m==="pass")  document.getElementById("penPass").setAttribute("aria-pressed","true");
   if(m==="shot")  document.getElementById("penShot").setAttribute("aria-pressed","true");
   if(m==="erase") document.getElementById("penErase").setAttribute("aria-pressed","true");
@@ -1370,8 +1389,9 @@ function setMode(m){
   if(board) board.setAttribute("data-text-mode", m === "text" ? "true" : "false");
 }
 document.getElementById("modeSelect").addEventListener("click", ()=>setMode("select"));
-document.getElementById("penRun").addEventListener("click",   ()=>setMode(STATE.mode==="run"   ? "select" : "run"));
-document.getElementById("penPass").addEventListener("click",  ()=>setMode(STATE.mode==="pass"  ? "select" : "pass"));
+document.getElementById("penRun").addEventListener("click",    ()=>setMode(STATE.mode==="run"   ? "select" : "run"));
+document.getElementById("penRunDef").addEventListener("click", ()=>setMode(STATE.mode==="rund"  ? "select" : "rund"));
+document.getElementById("penPass").addEventListener("click",   ()=>setMode(STATE.mode==="pass"  ? "select" : "pass"));
 document.getElementById("penShot").addEventListener("click",  ()=>setMode(STATE.mode==="shot"  ? "select" : "shot"));
 document.getElementById("penErase").addEventListener("click", ()=>setMode(STATE.mode==="erase" ? "select" : "erase"));
 
@@ -1515,6 +1535,7 @@ document.getElementById("board").addEventListener("pointerdown",(ev)=>{
   const pt = clientToSvg(ev.clientX, ev.clientY);
   const color = STATE.mode === "pass" ? "var(--pen-pass)"
               : STATE.mode === "shot" ? "var(--pen-shot)"
+              : STATE.mode === "rund" ? "var(--pen-rund)"
               : STATE.mode === "free" ? FREE_COLOR
               : "var(--pen-run)";
   const line = { id: STATE.nextId++, kind: STATE.mode, color,
@@ -2987,7 +3008,8 @@ function inlineSvgColors(svg){
   const map = {
     "var(--court-bg)":"#f4eee2","var(--court-line)":"#7a6e54","var(--court-line-thin)":"#a0916f",
     "var(--att)":"#ff8a00","var(--def)":"#3ec1ff","var(--tw)":"#5dd39e","var(--ball)":"#ffd166",
-    "var(--pen-run)":"#ff8a00","var(--pen-pass)":"#3ec1ff","var(--pen-shot)":"#ef476f"
+    "var(--pen-run)":"#ff8a00","var(--pen-rund)":"#3ec1ff",
+    "var(--pen-pass)":"#2ea043","var(--pen-shot)":"#c8102e"
   };
   svg.querySelectorAll("*").forEach(el=>{
     ["fill","stroke"].forEach(attr=>{
