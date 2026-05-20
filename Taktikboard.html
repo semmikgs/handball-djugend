@@ -537,10 +537,6 @@ button{font-family:inherit}
   </div>
   <div class="save-controls">
     <button class="tb-action primary" id="btnSaveCurrent">Aktuelles speichern</button>
-    <button class="tb-action" id="btnExportAll">Alle exportieren</button>
-    <label class="tb-action" for="impFile">Importieren
-      <input type="file" id="impFile" accept="application/json,.json" style="display:none">
-    </label>
   </div>
   <div class="save-stats">
     <strong id="saveCount">0</strong> gespeichert
@@ -2476,7 +2472,22 @@ document.getElementById("btnClearAll").addEventListener("click", ()=>{
 
 /* SPEICHERN / LADEN / EXPORT / IMPORT */
 const STORAGE_KEY = "tb_konstellationen";
-function ladeAlle(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; } }
+function ladeAlle(){
+  try{
+    const list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let changed = false;
+    list.forEach((k, i) => {
+      if(!k.id){
+        k.id = "k_" + (new Date(k.gespeichert_am||Date.now()).getTime()) + "_" + i + "_" + Math.floor(Math.random()*9999);
+        changed = true;
+      }
+    });
+    if(changed){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+    }
+    return list;
+  }catch(e){ return []; }
+}
 function speichereAlle(list){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
   catch(e){ alert("Speichern fehlgeschlagen — eventuell ist der Speicher voll."); }
@@ -2991,14 +3002,6 @@ function downloadJson(filename, obj){
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 }
-document.getElementById("btnExportAll").addEventListener("click",()=>{
-  const list = ladeAlle();
-  if(!list.length){ alert("Nichts zu exportieren."); return; }
-  const stamp = new Date().toISOString().slice(0,10);
-  downloadJson(`Taktikboard_${stamp}.json`,
-    { _meta:{format:"tb-konstellationen/v1", exportiert_am:new Date().toISOString(), anzahl:list.length},
-      konstellationen:list });
-});
 window.exportiereKonst = function(id){
   const list = ladeAlle();
   const k = list.find(x=>x.id===id); if(!k) return;
@@ -3006,34 +3009,6 @@ window.exportiereKonst = function(id){
   downloadJson(`Taktik_${sane}.json`,
     { _meta:{format:"tb-konstellation/v1", exportiert_am:new Date().toISOString()}, konstellation:k });
 };
-document.getElementById("impFile").addEventListener("change", async (ev)=>{
-  const file = ev.target.files[0];
-  if(!file) return;
-  try{
-    const data = JSON.parse(await file.text());
-    let imp = [];
-    if(Array.isArray(data.konstellationen)) imp = data.konstellationen;
-    else if(data.konstellation) imp = [data.konstellation];
-    else if(Array.isArray(data)) imp = data;
-    else throw new Error("Unbekanntes Dateiformat");
-    imp = imp.filter(k => k && Array.isArray(k.tokens) && Array.isArray(k.lines) && k.schnitt);
-    if(!imp.length) throw new Error("Keine gültigen Konstellationen");
-    const list = ladeAlle();
-    const exist = new Set(list.map(k => k.id));
-    let neu = 0;
-    imp.forEach(k=>{
-      if(!k.id) k.id = "k_" + Date.now() + "_" + Math.floor(Math.random()*9999);
-      if(!exist.has(k.id)){ list.unshift(k); neu++; }
-    });
-    if(list.length > 50) list.length = 50;
-    speichereAlle(list);
-    renderSaveList();
-    alert(`${neu} von ${imp.length} Konstellationen importiert.`);
-  }catch(err){
-    alert("Import fehlgeschlagen: " + err.message);
-  }
-  ev.target.value = "";
-});
 
 /* DRUCKEN */
 document.getElementById("btnPrint").addEventListener("click", druckeAktuelles);
