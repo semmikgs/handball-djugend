@@ -510,9 +510,8 @@
     transition:background-color 0.12s,border-color 0.12s}
   .me-checkbox:hover{border-color:var(--accent)}
   .me-checkbox.checked{background:var(--accent);border-color:var(--accent)}
-  .me-checkbox.checked::after{content:"";width:6px;height:10px;
-    border:solid #fff;border-width:0 2px 2px 0;
-    transform:rotate(45deg);margin-bottom:2px}
+  .me-checkbox svg{width:14px;height:14px;display:none;color:#fff}
+  .me-checkbox.checked svg{display:block}
   .me-card .me-head{padding-left:48px;position:relative}
 
   /* Konflikt- und Vorschau-Dialog */
@@ -839,11 +838,11 @@
     </div>
 
     <div id="meStatus" class="status" style="display:none"></div>
-    <div class="me-bulkbar" id="meBulkBar" style="display:none">
+    <div class="me-bulkbar" id="meBulkBar">
       <button id="meBulkAll" title="Alle ein-/ausklicken">Alle auswählen</button>
       <span class="bb-count"><strong id="meBulkCount">0</strong> ausgewählt</span>
       <div class="spacer"></div>
-      <button id="meBulkExport" class="primary" disabled>Auswahl als ZIP</button>
+      <button id="meBulkExport" class="primary" disabled>Auswahl als ZIP exportieren</button>
       <label class="me-bulk-import-label" for="meBulkImportFile">
         <button id="meBulkImportBtn" type="button" onclick="document.getElementById('meBulkImportFile').click()">Aus ZIP importieren</button>
         <input type="file" id="meBulkImportFile" accept=".zip,application/zip" style="display:none">
@@ -2674,7 +2673,7 @@ function einheitCardHtml(e, idx){
   return `
   <div class="me-card" data-idx="${idx}" data-id="${esc(e.id||'')}">
     <div class="me-head" onclick="toggleEinheit(this)">
-      <div class="me-checkbox${meIsSelected(e.id)?' checked':''}" onclick="event.stopPropagation();meToggleSelect('${esc(e.id||'')}')" title="Für Bulk-Aktion auswählen"></div>
+      <div class="me-checkbox${meIsSelected(e.id)?' checked':''}" onclick="event.stopPropagation();meToggleSelect('${esc(e.id||'')}')" title="Für Bulk-Aktion auswählen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg></div>
       <div class="me-info">
         <div class="me-date">${esc(planDate)}</div>
         <div class="me-title">${esc(modusLabel)} · ${e.gesamt_dauer} min · ${e.aufwaermen.length + e.hauptteil.length + e.ausklang.length} Module</div>
@@ -2929,22 +2928,18 @@ function meUpdateBulkUi(){
   // verwaiste Selektionen entfernen
   const idsLive = new Set(list.map(e=>e.id));
   [...ME_SELECTION].forEach(id => { if(!idsLive.has(id)) ME_SELECTION.delete(id); });
-  // Checkbox-Klassen direkt am DOM updaten (kein Re-Render nötig)
   document.querySelectorAll(".me-card").forEach(card => {
     const id = card.getAttribute("data-id");
     const cb = card.querySelector(".me-checkbox");
     if(cb) cb.classList.toggle("checked", ME_SELECTION.has(id));
   });
-  // Bar zeigen, wenn überhaupt Einheiten existieren
-  const bar = document.getElementById("meBulkBar");
-  if(bar) bar.style.display = list.length ? "flex" : "none";
   const count = document.getElementById("meBulkCount");
   if(count) count.textContent = ME_SELECTION.size;
   const exp = document.getElementById("meBulkExport");
   if(exp) exp.disabled = ME_SELECTION.size === 0;
-  // Alle-auswählen-Button: Beschriftung ändern, wenn alle schon ausgewählt
   const allBtn = document.getElementById("meBulkAll");
   if(allBtn){
+    allBtn.disabled = list.length === 0;
     const allOn = list.length > 0 && list.every(e => ME_SELECTION.has(e.id));
     allBtn.textContent = allOn ? "Auswahl aufheben" : "Alle auswählen";
   }
@@ -3029,8 +3024,10 @@ function schreibeZip(eintraege){
   return new Blob([...local, ...central, eocd], { type: "application/zip" });
 }
 
-/* Export der ausgewählten Einheiten als ZIP */
-function meExportierenZip(){
+/* Export der ausgewählten Einheiten als ZIP — bevorzugt Web Share API
+   (für iOS Safari unverzichtbar, weil dort der <a download>-Mechanismus
+   das ZIP gerne als .json missinterpretiert). Fallback: klassischer Download. */
+async function meExportierenZip(){
   const list = ladeGespeicherte();
   const ausgewaehlt = list.filter(e => ME_SELECTION.has(e.id));
   if(!ausgewaehlt.length){ alert("Keine Einheiten ausgewählt."); return; }
@@ -3058,11 +3055,30 @@ function meExportierenZip(){
     });
   });
   const blob = schreibeZip(eintraege);
+  const datum = new Date().toISOString().slice(0,10);
+  const filename = `mtv-einheiten_${datum}_${ausgewaehlt.length}.zip`;
+
+  // Web Share API mit File-Support: idealer Weg auf iOS/Mobile
+  try{
+    const file = new File([blob], filename, { type: "application/zip" });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({
+        files: [file],
+        title: filename,
+        text: `${ausgewaehlt.length} Trainings-Einheiten`
+      });
+      return;
+    }
+  }catch(err){
+    // Share abgebrochen oder nicht möglich — fällt unten auf Download zurück
+    if(err && err.name === "AbortError") return; // Nutzer hat Teilen abgebrochen
+  }
+  // Fallback: klassischer Download
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const datum = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = `mtv-einheiten_${datum}_${ausgewaehlt.length}.zip`;
+  a.download = filename;
+  a.rel = "noopener";
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
 }
@@ -3090,8 +3106,8 @@ async function meImportiereZip(file){
     alert("ZIP konnte nicht gelesen werden: " + err.message);
     return;
   }
-  // manifest.json suchen
-  const mf = files.find(f => f.name === "manifest.json");
+  // manifest.json suchen (auch wenn das ZIP in einem Unterordner verschachtelt ist)
+  const mf = files.find(f => f.name === "manifest.json" || f.name.endsWith("/manifest.json"));
   if(mf){
     try{
       const m = JSON.parse(new TextDecoder().decode(mf.data));
@@ -3101,16 +3117,20 @@ async function meImportiereZip(file){
       }
     }catch(e){ /* manifest ist optional/parsebar-Fehler ignorieren */ }
   }
-  // einheiten/*.json einlesen
+  // Alle .json-Dateien probeweise als Einheit lesen, struktur-basiert filtern
+  // (Pfad ist egal — manche Archivierer/Sharing-Apps verschachteln das ZIP)
   const candidates = [];
   files.forEach(f => {
-    if(!f.name.startsWith("einheiten/")) return;
-    if(!f.name.endsWith(".json")) return;
+    if(!f.name.toLowerCase().endsWith(".json")) return;
+    if(f.name.endsWith("manifest.json")) return;
     try{
       const text = new TextDecoder().decode(f.data);
       const parsed = JSON.parse(text);
       const e = parsed.einheit || parsed;
-      if(e && e.id && e.aufwaermen) candidates.push(e);
+      // Eine Einheit hat zwingend id + die drei Block-Arrays
+      if(e && e.id && Array.isArray(e.aufwaermen) && Array.isArray(e.hauptteil) && Array.isArray(e.ausklang)){
+        candidates.push(e);
+      }
     }catch(err){ /* Eintrag überspringen */ }
   });
   if(!candidates.length){

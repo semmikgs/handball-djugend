@@ -273,8 +273,8 @@ button{font-family:inherit}
   transition:background-color 0.12s,border-color 0.12s}
 .save-card .sc-checkbox:hover{border-color:var(--accent)}
 .save-card .sc-checkbox.checked{background:var(--accent);border-color:var(--accent)}
-.save-card .sc-checkbox.checked::after{content:"";width:5px;height:9px;
-  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-bottom:1px}
+.save-card .sc-checkbox svg{width:13px;height:13px;display:none;color:#fff}
+.save-card .sc-checkbox.checked svg{display:block}
 .save-card{position:relative;padding-left:38px}
 
 /* Import-Dialog */
@@ -551,11 +551,11 @@ button{font-family:inherit}
       <option value="name_asc">Name A–Z</option>
     </select>
   </div>
-  <div class="tb-bulkbar" id="tbBulkBar" style="display:none">
+  <div class="tb-bulkbar" id="tbBulkBar">
     <button id="tbBulkAll">Alle auswählen</button>
     <span class="bb-count"><strong id="tbBulkCount">0</strong> ausgewählt</span>
     <div class="spacer"></div>
-    <button id="tbBulkExport" class="primary" disabled>Auswahl als ZIP</button>
+    <button id="tbBulkExport" class="primary" disabled>Auswahl als ZIP exportieren</button>
     <button id="tbBulkImportBtn" type="button">Aus ZIP importieren</button>
     <input type="file" id="tbBulkImportFile" accept=".zip,application/zip" style="display:none">
   </div>
@@ -2504,14 +2504,13 @@ function tbUpdateBulkUi(){
     const cb = card.querySelector(".sc-checkbox");
     if(cb) cb.classList.toggle("checked", TB_SELECTION.has(id));
   });
-  const bar = document.getElementById("tbBulkBar");
-  if(bar) bar.style.display = list.length ? "flex" : "none";
   const count = document.getElementById("tbBulkCount");
   if(count) count.textContent = TB_SELECTION.size;
   const exp = document.getElementById("tbBulkExport");
   if(exp) exp.disabled = TB_SELECTION.size === 0;
   const allBtn = document.getElementById("tbBulkAll");
   if(allBtn){
+    allBtn.disabled = list.length === 0;
     const allOn = list.length > 0 && list.every(k => TB_SELECTION.has(k.id));
     allBtn.textContent = allOn ? "Auswahl aufheben" : "Alle auswählen";
   }
@@ -2554,7 +2553,7 @@ function tbLeseZipBytes(arrayBuffer){
   return files;
 }
 
-function tbExportierenZip(){
+async function tbExportierenZip(){
   const list = ladeAlle();
   const ausgewaehlt = list.filter(k => TB_SELECTION.has(k.id));
   if(!ausgewaehlt.length){ alert("Keine Konstellationen ausgewählt."); return; }
@@ -2576,10 +2575,27 @@ function tbExportierenZip(){
     eintraege.push({ name: `konstellationen/${safeId}.json`, data: JSON.stringify(wrapped, null, 2) });
   });
   const blob = baueZip(eintraege);
+  const datum = new Date().toISOString().slice(0,10);
+  const filename = `mtv-konstellationen_${datum}_${ausgewaehlt.length}.zip`;
+
+  // Bevorzugt Web Share API (iOS Safari korrekt, Android Chrome auch).
+  try{
+    const file = new File([blob], filename, { type: "application/zip" });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({
+        files: [file],
+        title: filename,
+        text: `${ausgewaehlt.length} Konstellationen`
+      });
+      return;
+    }
+  }catch(err){
+    if(err && err.name === "AbortError") return;
+  }
+  // Fallback: normaler Download
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const datum = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = `mtv-konstellationen_${datum}_${ausgewaehlt.length}.zip`;
+  a.href = url; a.download = filename; a.rel = "noopener";
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
   showSaveToast?.("ZIP exportiert");
@@ -2604,7 +2620,7 @@ async function tbImportiereZip(file){
   }catch(err){
     alert("ZIP konnte nicht gelesen werden: " + err.message); return;
   }
-  const mf = files.find(f => f.name === "manifest.json");
+  const mf = files.find(f => f.name === "manifest.json" || f.name.endsWith("/manifest.json"));
   if(mf){
     try{
       const m = JSON.parse(new TextDecoder().decode(mf.data));
@@ -2614,15 +2630,17 @@ async function tbImportiereZip(file){
       }
     }catch(e){}
   }
+  // Alle .json probeweise als Konstellation lesen, struktur-basiert filtern
   const candidates = [];
   files.forEach(f => {
-    if(!f.name.startsWith("konstellationen/")) return;
-    if(!f.name.endsWith(".json")) return;
+    if(!f.name.toLowerCase().endsWith(".json")) return;
+    if(f.name.endsWith("manifest.json")) return;
     try{
       const text = new TextDecoder().decode(f.data);
       const parsed = JSON.parse(text);
       const k = parsed.konstellation || parsed;
-      if(k && k.id && k.tokens) candidates.push(k);
+      // Konstellation hat id + tokens-Array + schnitt
+      if(k && k.id && Array.isArray(k.tokens) && k.schnitt) candidates.push(k);
     }catch(err){}
   });
   if(!candidates.length){ alert("Keine importierbaren Konstellationen im ZIP gefunden."); return; }
@@ -2882,7 +2900,7 @@ function saveCardHtml(k){
   const planDate = k.plan_datum ? new Date(k.plan_datum).toLocaleDateString("de-DE") : "";
   return `
   <div class="save-card" data-id="${esc(k.id)}">
-    <div class="sc-checkbox${tbIsSelected(k.id)?' checked':''}" onclick="event.stopPropagation();tbToggleSelect('${esc(k.id)}')" title="Für Bulk-Aktion auswählen"></div>
+    <div class="sc-checkbox${tbIsSelected(k.id)?' checked':''}" onclick="event.stopPropagation();tbToggleSelect('${esc(k.id)}')" title="Für Bulk-Aktion auswählen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg></div>
     <div class="sc-top">
       <div style="flex:1;min-width:0">
         <div class="sc-name">${esc(k.name)}</div>

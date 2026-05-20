@@ -48,8 +48,8 @@ html,body{margin:0;padding:0;min-height:100vh;min-height:100dvh;
 /* Tablet/Mobile: einspaltig, Logo zuerst, dann Kacheln untereinander */
 @media (max-width: 820px){
   .hero{grid-template-columns:1fr;gap:16px}
-  .hero > .logo-wrap{order:-1}
-  .logo{width:min(220px, 50vw)}
+  .hero > .logo-wrap{order:-1;text-align:center}
+  .logo{width:min(220px, 50vw);margin:0 auto}
   body{padding:20px;justify-content:flex-start;padding-top:32px}
 }
 </style>
