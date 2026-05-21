@@ -448,13 +448,13 @@
   .me-fields label{display:flex;flex-direction:column;gap:3px;
     font-size:calc(10.5px * var(--fs-scale,1));letter-spacing:.07em;
     text-transform:uppercase;color:var(--muted);font-weight:600}
-  .me-fields input[type="date"], .me-fields textarea{
+  .me-fields input[type="date"], .me-fields input[type="text"], .me-fields textarea{
     background:var(--bg-elevated);border:1px solid var(--line);border-radius:7px;
     color:var(--ink);font-family:inherit;
     font-size:calc(13px * var(--fs-scale,1));padding:7px 10px;outline:none;
     text-transform:none;letter-spacing:normal}
   .me-fields textarea{resize:vertical;min-height:60px;font-weight:400}
-  .me-fields input[type="date"]:focus, .me-fields textarea:focus{border-color:var(--accent)}
+  .me-fields input[type="date"]:focus, .me-fields input[type="text"]:focus, .me-fields textarea:focus{border-color:var(--accent)}
 
   .me-modules{margin-top:12px}
   .me-modules .block-head{margin:14px 0 6px}
@@ -830,6 +830,22 @@
 
 <!-- ===================== PRINT-VIEW (Trainerblatt) ===================== -->
 <div class="print-view" id="printView" aria-hidden="true"></div>
+
+<!-- ===================== EINHEIT-SPEICHERN-DIALOG ===================== -->
+<div class="impdialog" id="meSaveDialog">
+  <div class="impdialog-inner" style="max-width:440px">
+    <h3>Einheit speichern</h3>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+      <label for="meSaveName" style="font-size:12px;color:var(--muted)">Name</label>
+      <input type="text" id="meSaveName" maxlength="80" placeholder="z.B. Training Pass-Stoßen Klasse D"
+        style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px">
+    </div>
+    <div class="imp-buttons">
+      <button onclick="meSchliesseSaveDialog()">Abbrechen</button>
+      <button class="primary" id="meSaveDialogOk">Speichern</button>
+    </div>
+  </div>
+</div>
 
 <!-- ===================== ADD-ON-MODAL ===================== -->
 <div class="modal-overlay" id="modal" role="dialog" aria-modal="true">
@@ -2620,12 +2636,13 @@ function einheitCardHtml(e, idx){
   ).join("");
   const modusLabel = {zufall:"Zufall", schwerpunkt:"Schwerpunkt", serie:"Serie"}[e.modus] || e.modus;
   const planDate = e.plan_datum ? new Date(e.plan_datum).toLocaleDateString("de-DE") : "kein Datum";
+  const name = e.name || `${modusLabel} ${e.gesamt_dauer} min`;
   return `
   <div class="me-card" data-idx="${idx}" data-id="${esc(e.id||'')}">
     <div class="me-head" onclick="toggleEinheit(this)">
       <div class="me-info">
-        <div class="me-date">${esc(planDate)}</div>
-        <div class="me-title">${esc(modusLabel)} · ${e.gesamt_dauer} min · ${e.aufwaermen.length + e.hauptteil.length + e.ausklang.length} Module</div>
+        <div class="me-title">${esc(name)}</div>
+        <div class="me-date">${esc(planDate)} · ${esc(modusLabel)} · ${e.gesamt_dauer} min · ${e.aufwaermen.length + e.hauptteil.length + e.ausklang.length} Module</div>
         <div class="me-meta">
           ${e.optionen.level ? `<span class="chip lvl">Level ${esc(e.optionen.level)}</span>` : ""}
           ${e.optionen.intensitaet ? `<span class="chip">${esc(e.optionen.intensitaet)}</span>` : ""}
@@ -2641,6 +2658,9 @@ function einheitCardHtml(e, idx){
     </div>
     <div class="me-body">
       <div class="me-fields">
+        <label style="grid-column:span 3">Name
+          <input type="text" maxlength="80" value="${esc(e.name||"")}" placeholder="Name der Einheit" onchange="setEinheitName(${idx}, this.value)">
+        </label>
         <label>Geplantes Datum
           <input type="date" value="${esc(e.plan_datum||"")}" onchange="setPlanDatum(${idx}, this.value)">
         </label>
@@ -2655,7 +2675,6 @@ function einheitCardHtml(e, idx){
       </div>
       <div class="me-export">
         <button class="btn-secondary" onclick="druckeEinheit(${idx})">PDF / Drucken</button>
-        <button class="btn-secondary" onclick="exportiereEinheit(${idx})">JSON exportieren</button>
         <button class="btn-secondary" onclick="meTeileEinheitAlsZip(${idx})">ZIP teilen</button>
       </div>
     </div>
@@ -2731,6 +2750,14 @@ function setKommentar(idx, val){
   list[idx].kommentar = val || "";
   speichereGespeicherte(list);
 }
+function setEinheitName(idx, val){
+  const list = ladeGespeicherte();
+  if(!list[idx]) return;
+  list[idx].name = (val || "").trim();
+  speichereGespeicherte(list);
+  renderEinheiten();   // Karte oben mit neuem Namen anzeigen
+  ladeSerienAuswahl(); // Dropdown im Serien-Modus aktualisieren
+}
 function loescheEinheit(idx){
   if(!confirm("Einheit wirklich löschen?")) return;
   const list = ladeGespeicherte();
@@ -2743,22 +2770,6 @@ function loescheEinheit(idx){
 document.getElementById("meSort").addEventListener("change", renderEinheiten);
 
 /* --- Export / Import als JSON-Datei --- */
-function exportAls(filename, obj){
-  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
-}
-function exportiereEinheit(idx){
-  const list = ladeGespeicherte();
-  const e = list[idx]; if(!e) return;
-  const date = (e.plan_datum||"").replace(/-/g,"") || new Date().toISOString().slice(0,10).replace(/-/g,"");
-  exportAls(`Einheit_${date}_${e.modus}.json`,
-    { _meta:{ format:"hb-einheit/v1", exportiert_am:new Date().toISOString() }, einheit:e });
-}
-
 /* ===================================================================
    Generator — Steuerungen, Generierung, Anzeige
    ===================================================================*/
@@ -3053,7 +3064,9 @@ function ladeSerienAuswahl(){
     const o = document.createElement("option");
     o.value = i;
     const dat = new Date(e.gespeichert_am).toLocaleDateString("de-DE");
-    o.textContent = `${dat} — ${e.gesamt_dauer} min, ${e.modus}`;
+    o.textContent = e.name
+      ? `${e.name} (${dat})`
+      : `${dat} — ${e.gesamt_dauer} min, ${e.modus}`;
     sel.appendChild(o);
   });
 }
@@ -3169,9 +3182,28 @@ function zeigeEinheit(e){
 
 function speichereEinheit(){
   if(!GEN_LETZTE) return;
+  // Default-Name vorbelegen: Datum + Modus
+  const heute = new Date().toLocaleDateString("de-DE");
+  const modusLabel = {zufall:"Zufall", schwerpunkt:"Schwerpunkt", serie:"Serie"}[GEN_LETZTE.modus] || GEN_LETZTE.modus;
+  const defaultName = `${heute} — ${modusLabel} ${GEN_LETZTE.gesamt_dauer} min`;
+  const inp = document.getElementById("meSaveName");
+  inp.value = defaultName;
+  document.getElementById("meSaveDialog").classList.add("show");
+  setTimeout(()=>{ inp.focus(); inp.select(); }, 50);
+}
+
+function meSchliesseSaveDialog(){
+  document.getElementById("meSaveDialog").classList.remove("show");
+}
+
+function meSaveDialogBestaetigen(){
+  if(!GEN_LETZTE) return;
+  const name = (document.getElementById("meSaveName").value || "").trim();
+  if(!name){ document.getElementById("meSaveName").focus(); return; }
   const list = ladeGespeicherte();
   const slim = {
     id: "e_" + Date.now() + "_" + Math.floor(Math.random()*9999),
+    name,
     modus: GEN_LETZTE.modus,
     ziel_dauer: GEN_LETZTE.ziel_dauer,
     gesamt_dauer: GEN_LETZTE.gesamt_dauer,
@@ -3188,11 +3220,18 @@ function speichereEinheit(){
   if(list.length > 20) list.length = 20;
   speichereGespeicherte(list);
   ladeSerienAuswahl();
+  meSchliesseSaveDialog();
   const btn = document.getElementById("btnSave");
   const orig = btn.textContent;
   btn.textContent = "✓ Gespeichert";
   setTimeout(()=>{ btn.textContent = orig; }, 1500);
 }
+
+document.getElementById("meSaveDialogOk")?.addEventListener("click", meSaveDialogBestaetigen);
+document.getElementById("meSaveName")?.addEventListener("keydown", (ev)=>{
+  if(ev.key === "Enter"){ ev.preventDefault(); meSaveDialogBestaetigen(); }
+  if(ev.key === "Escape"){ meSchliesseSaveDialog(); }
+});
 
 /* ===================================================================
    MODUL-TAUSCHEN (im Generator-Tab)
