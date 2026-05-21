@@ -489,51 +489,19 @@
   .me-export{display:flex;gap:8px;justify-content:flex-end;
     padding-top:10px;border-top:1px solid var(--line);margin-top:10px}
 
-  /* Bulk-Selection für Meine Einheiten */
-  .me-bulkbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-    background:var(--bg-elevated);border:1px solid var(--line);border-radius:9px;
-    padding:10px 14px;margin-bottom:14px;font-size:13px}
-  .me-bulkbar .bb-count{color:var(--muted);font-weight:500}
-  .me-bulkbar .bb-count strong{color:var(--accent);font-weight:700}
-  .me-bulkbar button{background:var(--bg);border:1px solid var(--line);
-    color:var(--ink);border-radius:7px;padding:7px 12px;cursor:pointer;
-    font-family:inherit;font-size:12.5px;font-weight:500}
-  .me-bulkbar button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
-  .me-bulkbar button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  .me-bulkbar button.primary:hover{filter:brightness(1.08);color:#fff}
-  .me-bulkbar button:disabled{opacity:0.45;cursor:not-allowed}
-  .me-bulkbar .spacer{flex:1}
-
-  .me-checkbox{position:absolute;top:14px;left:14px;width:22px;height:22px;
-    border:2px solid var(--line-strong);border-radius:5px;background:var(--bg);
-    cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;
-    transition:background-color 0.12s,border-color 0.12s}
-  .me-checkbox:hover{border-color:var(--accent)}
-  .me-checkbox.checked{background:var(--accent);border-color:var(--accent)}
-  .me-checkbox svg{width:14px;height:14px;display:none;color:#fff}
-  .me-checkbox.checked svg{display:block}
-  .me-card .me-head{padding-left:48px;position:relative}
-
-  /* Konflikt- und Vorschau-Dialog */
+  /* Import-Dialog (minimal) */
   .impdialog{position:fixed;inset:0;background:var(--bg-overlay);
     display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
   .impdialog.show{display:flex}
   .impdialog-inner{background:var(--bg-elevated);border:1px solid var(--line-strong);
-    border-radius:12px;padding:20px;max-width:540px;width:100%;max-height:85vh;
+    border-radius:12px;padding:20px;max-width:520px;width:100%;max-height:85vh;
     overflow-y:auto;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,0.4)}
-  .impdialog-inner h3{margin:0 0 12px;font-size:17px;font-weight:700}
-  .impdialog-inner .imp-stats{background:var(--bg);border:1px solid var(--line);
-    border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.7}
-  .impdialog-inner .imp-stats .s-ok{color:var(--good);font-weight:700}
-  .impdialog-inner .imp-stats .s-skip{color:var(--muted);font-weight:700}
-  .impdialog-inner .imp-stats .s-conf{color:var(--warn);font-weight:700}
-  .impdialog-inner .imp-conflict-info{font-size:13px;line-height:1.55;
-    background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px}
-  .impdialog-inner .imp-conflict-info .ci-title{font-weight:700;color:var(--accent);margin-bottom:4px}
-  .impdialog-inner .imp-conflict-info code{font-family:"IBM Plex Mono",monospace;
+  .impdialog-inner h3{margin:0 0 12px;font-size:16px;font-weight:700}
+  .impdialog-inner .imp-info{font-size:13px;line-height:1.55;
+    background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;margin-bottom:12px}
+  .impdialog-inner .imp-info code{font-family:"IBM Plex Mono",monospace;
     color:var(--accent);font-size:11.5px}
-  .impdialog-inner .imp-conflict-info .ci-row{display:flex;gap:8px;align-items:flex-start;margin-top:4px}
-  .impdialog-inner .imp-conflict-info .ci-row strong{flex-shrink:0;min-width:110px;color:var(--ink-soft)}
   .impdialog-inner .imp-buttons{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
   .impdialog-inner .imp-buttons button{background:var(--bg);border:1px solid var(--line);
     color:var(--ink);border-radius:7px;padding:8px 14px;cursor:pointer;
@@ -541,9 +509,6 @@
   .impdialog-inner .imp-buttons button:hover{border-color:var(--accent);color:var(--accent)}
   .impdialog-inner .imp-buttons button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .impdialog-inner .imp-buttons button.primary:hover{filter:brightness(1.08);color:#fff}
-  .impdialog-inner .imp-apply-all{display:flex;align-items:center;gap:8px;font-size:12.5px;
-    color:var(--muted);cursor:pointer;margin-top:8px;user-select:none}
-  .impdialog-inner .imp-apply-all input[type="checkbox"]{margin:0}
 
   /* ===================================================================
      PRINT-VIEW (Trainerblatt) — Bildschirm versteckt, beim Drucken sichtbar
@@ -830,31 +795,18 @@
           <option value="gespeichert_desc">Speicher-Datum (neueste zuerst)</option>
         </select>
       </div>
-      <button class="btn-secondary" id="meExportAll" title="Alle Einheiten als JSON-Datei sichern">Alle exportieren</button>
-      <label class="btn-secondary" for="meImportFile" title="Einheiten aus JSON-Datei importieren">
-        Importieren
-        <input type="file" id="meImportFile" accept="application/json,.json" style="display:none">
-      </label>
+      <button class="btn-secondary" id="meImportBtn" type="button" title="Eine ZIP-Datei mit Einheiten importieren">ZIP importieren</button>
+      <input type="file" id="meImportFile" accept=".zip,application/zip" style="display:none">
     </div>
 
     <div id="meStatus" class="status" style="display:none"></div>
-    <div class="me-bulkbar" id="meBulkBar">
-      <button id="meBulkAll" title="Alle ein-/ausklicken">Alle auswählen</button>
-      <span class="bb-count"><strong id="meBulkCount">0</strong> ausgewählt</span>
-      <div class="spacer"></div>
-      <button id="meBulkExport" class="primary" disabled>Auswahl als ZIP exportieren</button>
-      <label class="me-bulk-import-label" for="meBulkImportFile">
-        <button id="meBulkImportBtn" type="button" onclick="document.getElementById('meBulkImportFile').click()">Aus ZIP importieren</button>
-        <input type="file" id="meBulkImportFile" accept=".zip,application/zip" style="display:none">
-      </label>
-    </div>
     <div id="meList"></div>
   </div>
 </div><!-- /vEinheiten -->
 
-<!-- Konflikt-/Vorschau-Dialog für Import -->
-<div class="impdialog" id="impDialog">
-  <div class="impdialog-inner" id="impDialogInner"></div>
+<!-- Import-Dialog -->
+<div class="impdialog" id="meImpDialog">
+  <div class="impdialog-inner" id="meImpDialogInner"></div>
 </div>
 
 <!-- ===================== GLOSSAR-PANEL ===================== -->
@@ -2639,11 +2591,9 @@ function renderEinheiten(){
   if(!list.length){
     out.innerHTML = `<div class="status">Noch keine Einheiten gespeichert. `
       + `Generiere im Generator-Tab eine Einheit und klicke „Speichern".</div>`;
-    meUpdateBulkUi();
     return;
   }
   out.innerHTML = sorted.map((e,idx) => einheitCardHtml(e, list.indexOf(e))).join("");
-  meUpdateBulkUi();
 }
 
 function vergleicheEinheiten(a,b,mode){
@@ -2673,7 +2623,6 @@ function einheitCardHtml(e, idx){
   return `
   <div class="me-card" data-idx="${idx}" data-id="${esc(e.id||'')}">
     <div class="me-head" onclick="toggleEinheit(this)">
-      <div class="me-checkbox${meIsSelected(e.id)?' checked':''}" onclick="event.stopPropagation();meToggleSelect('${esc(e.id||'')}')" title="Für Bulk-Aktion auswählen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg></div>
       <div class="me-info">
         <div class="me-date">${esc(planDate)}</div>
         <div class="me-title">${esc(modusLabel)} · ${e.gesamt_dauer} min · ${e.aufwaermen.length + e.hauptteil.length + e.ausklang.length} Module</div>
@@ -2706,7 +2655,8 @@ function einheitCardHtml(e, idx){
       </div>
       <div class="me-export">
         <button class="btn-secondary" onclick="druckeEinheit(${idx})">PDF / Drucken</button>
-        <button class="btn-secondary" onclick="exportiereEinheit(${idx})">Einzeln exportieren</button>
+        <button class="btn-secondary" onclick="exportiereEinheit(${idx})">JSON exportieren</button>
+        <button class="btn-secondary" onclick="meTeileEinheitAlsZip(${idx})">ZIP teilen</button>
       </div>
     </div>
   </div>`;
@@ -2801,14 +2751,6 @@ function exportAls(filename, obj){
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 }
-document.getElementById("meExportAll").addEventListener("click", ()=>{
-  const list = ladeGespeicherte();
-  if(!list.length){ alert("Keine Einheiten zum Exportieren."); return; }
-  const stamp = new Date().toISOString().slice(0,10);
-  exportAls(`Handball_Einheiten_${stamp}.json`,
-    { _meta:{ exportiert_am:new Date().toISOString(), anzahl:list.length, format:"hb-einheiten/v1" },
-      einheiten:list });
-});
 function exportiereEinheit(idx){
   const list = ladeGespeicherte();
   const e = list[idx]; if(!e) return;
@@ -2816,39 +2758,6 @@ function exportiereEinheit(idx){
   exportAls(`Einheit_${date}_${e.modus}.json`,
     { _meta:{ format:"hb-einheit/v1", exportiert_am:new Date().toISOString() }, einheit:e });
 }
-
-document.getElementById("meImportFile").addEventListener("change", async (ev)=>{
-  const file = ev.target.files[0];
-  if(!file) return;
-  try{
-    const txt = await file.text();
-    const data = JSON.parse(txt);
-    let imp = [];
-    if(Array.isArray(data.einheiten)) imp = data.einheiten;
-    else if(data.einheit) imp = [data.einheit];
-    else if(Array.isArray(data)) imp = data;
-    else throw new Error("Unbekanntes Format");
-    if(!imp.length) throw new Error("Datei enthält keine Einheiten");
-    // Plausibilitäts-Check: braucht zumindest gesamt_dauer und module-Listen
-    imp = imp.filter(e => e && typeof e.gesamt_dauer === "number" && Array.isArray(e.hauptteil));
-    if(!imp.length) throw new Error("Keine gültigen Einheiten in der Datei");
-    const list = ladeGespeicherte();
-    // an Anfang hängen, Duplikate über gespeichert_am vermeiden
-    const existIds = new Set(list.map(e=>e.gespeichert_am));
-    let neu = 0;
-    imp.forEach(e=>{
-      if(!existIds.has(e.gespeichert_am)){ list.unshift(e); neu++; }
-    });
-    if(list.length > 50) list.length = 50;
-    speichereGespeicherte(list);
-    renderEinheiten();
-    ladeSerienAuswahl();
-    alert(`${neu} von ${imp.length} Einheiten importiert.`);
-  }catch(err){
-    alert("Import fehlgeschlagen: " + err.message);
-  }
-  ev.target.value = "";  // Eingabe zurücksetzen, damit dieselbe Datei nochmal gewählt werden kann
-});
 
 /* ===================================================================
    Generator — Steuerungen, Generierung, Anzeige
@@ -2903,7 +2812,19 @@ function updateSpSubFilter(){
 function ladeGespeicherte(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const list = raw ? JSON.parse(raw) : [];
+    // Migration: alte Einträge ohne id bekommen jetzt eine. Bei Bedarf zurückschreiben.
+    let changed = false;
+    list.forEach((e, i) => {
+      if(!e.id){
+        e.id = "e_" + (new Date(e.gespeichert_am||Date.now()).getTime()) + "_" + i + "_" + Math.floor(Math.random()*9999);
+        changed = true;
+      }
+    });
+    if(changed){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+    }
+    return list;
   }catch(e){ return []; }
 }
 function speichereGespeicherte(list){
@@ -2911,80 +2832,13 @@ function speichereGespeicherte(list){
 }
 
 /* =====================================================================
-   BULK-AUSWAHL + ZIP-EXPORT/-IMPORT FÜR EINHEITEN
+   ZIP-EXPORT / -IMPORT FÜR EINZELNE EINHEITEN
+   Einfacher Workflow: pro Karte ein "ZIP teilen"-Button, plus ein
+   zentraler ZIP-Import-Button. Konflikt-Handling per einfachem Dialog.
    ===================================================================== */
 
-const ME_SELECTION = new Set(); // IDs der ausgewählten Einheiten
-
-function meIsSelected(id){ return ME_SELECTION.has(id); }
-function meToggleSelect(id){
-  if(!id) return;
-  if(ME_SELECTION.has(id)) ME_SELECTION.delete(id);
-  else ME_SELECTION.add(id);
-  meUpdateBulkUi();
-}
-function meUpdateBulkUi(){
-  const list = ladeGespeicherte();
-  // verwaiste Selektionen entfernen
-  const idsLive = new Set(list.map(e=>e.id));
-  [...ME_SELECTION].forEach(id => { if(!idsLive.has(id)) ME_SELECTION.delete(id); });
-  document.querySelectorAll(".me-card").forEach(card => {
-    const id = card.getAttribute("data-id");
-    const cb = card.querySelector(".me-checkbox");
-    if(cb) cb.classList.toggle("checked", ME_SELECTION.has(id));
-  });
-  const count = document.getElementById("meBulkCount");
-  if(count) count.textContent = ME_SELECTION.size;
-  const exp = document.getElementById("meBulkExport");
-  if(exp) exp.disabled = ME_SELECTION.size === 0;
-  const allBtn = document.getElementById("meBulkAll");
-  if(allBtn){
-    allBtn.disabled = list.length === 0;
-    const allOn = list.length > 0 && list.every(e => ME_SELECTION.has(e.id));
-    allBtn.textContent = allOn ? "Auswahl aufheben" : "Alle auswählen";
-  }
-}
-
-/* ZIP-Reader: STORE-only, parst EOCD + Central Directory */
-function leseZipBytes(arrayBuffer){
-  const view = new DataView(arrayBuffer);
-  const bytes = new Uint8Array(arrayBuffer);
-  const decoder = new TextDecoder("utf-8");
-  let eocdOff = -1;
-  const maxScan = Math.min(arrayBuffer.byteLength, 65557);
-  for(let i = arrayBuffer.byteLength - 22; i >= arrayBuffer.byteLength - maxScan && i >= 0; i--){
-    if(view.getUint32(i, true) === 0x06054b50){ eocdOff = i; break; }
-  }
-  if(eocdOff < 0) throw new Error("Kein gültiges ZIP-Archiv");
-  const cdSize   = view.getUint32(eocdOff + 12, true);
-  const cdOffset = view.getUint32(eocdOff + 16, true);
-  let p = cdOffset;
-  const files = [];
-  while(p < cdOffset + cdSize){
-    if(view.getUint32(p, true) !== 0x02014b50) break;
-    const compression = view.getUint16(p + 10, true);
-    const compSize    = view.getUint32(p + 20, true);
-    const nameLen     = view.getUint16(p + 28, true);
-    const extraLen    = view.getUint16(p + 30, true);
-    const commentLen  = view.getUint16(p + 32, true);
-    const localHdr    = view.getUint32(p + 42, true);
-    const name = decoder.decode(bytes.subarray(p + 46, p + 46 + nameLen));
-    p += 46 + nameLen + extraLen + commentLen;
-    if(name.endsWith("/")) continue;
-    if(name.startsWith("__MACOSX/")) continue;
-    if(compression !== 0) continue; // nur STORE
-    if(view.getUint32(localHdr, true) !== 0x04034b50) continue;
-    const lhNameLen  = view.getUint16(localHdr + 26, true);
-    const lhExtraLen = view.getUint16(localHdr + 28, true);
-    const dataOff = localHdr + 30 + lhNameLen + lhExtraLen;
-    const data = bytes.subarray(dataOff, dataOff + compSize);
-    files.push({ name, data });
-  }
-  return files;
-}
-
-/* ZIP-Writer (identisch zum Taktikboard-Writer) */
-function schreibeZip(eintraege){
+/* Minimaler ZIP-Writer (STORE-only, mit CRC32) */
+function meSchreibeZip(eintraege){
   const crcTable = (function(){
     const t = new Uint32Array(256);
     for(let i=0;i<256;i++){
@@ -3024,245 +2878,172 @@ function schreibeZip(eintraege){
   return new Blob([...local, ...central, eocd], { type: "application/zip" });
 }
 
-/* Export der ausgewählten Einheiten als ZIP — bevorzugt Web Share API
-   (für iOS Safari unverzichtbar, weil dort der <a download>-Mechanismus
-   das ZIP gerne als .json missinterpretiert). Fallback: klassischer Download. */
-async function meExportierenZip(){
+/* Minimaler ZIP-Reader (STORE-only) */
+function meLeseZip(arrayBuffer){
+  const view = new DataView(arrayBuffer);
+  const bytes = new Uint8Array(arrayBuffer);
+  const decoder = new TextDecoder("utf-8");
+  let eocdOff = -1;
+  const maxScan = Math.min(arrayBuffer.byteLength, 65557);
+  for(let i = arrayBuffer.byteLength - 22; i >= arrayBuffer.byteLength - maxScan && i >= 0; i--){
+    if(view.getUint32(i, true) === 0x06054b50){ eocdOff = i; break; }
+  }
+  if(eocdOff < 0) throw new Error("Kein gültiges ZIP-Archiv");
+  const cdSize   = view.getUint32(eocdOff + 12, true);
+  const cdOffset = view.getUint32(eocdOff + 16, true);
+  let p = cdOffset;
+  const files = [];
+  while(p < cdOffset + cdSize){
+    if(view.getUint32(p, true) !== 0x02014b50) break;
+    const compression = view.getUint16(p + 10, true);
+    const compSize    = view.getUint32(p + 20, true);
+    const nameLen     = view.getUint16(p + 28, true);
+    const extraLen    = view.getUint16(p + 30, true);
+    const commentLen  = view.getUint16(p + 32, true);
+    const localHdr    = view.getUint32(p + 42, true);
+    const name = decoder.decode(bytes.subarray(p + 46, p + 46 + nameLen));
+    p += 46 + nameLen + extraLen + commentLen;
+    if(name.endsWith("/")) continue;
+    if(name.startsWith("__MACOSX/")) continue;
+    if(compression !== 0) continue;
+    if(view.getUint32(localHdr, true) !== 0x04034b50) continue;
+    const lhNameLen  = view.getUint16(localHdr + 26, true);
+    const lhExtraLen = view.getUint16(localHdr + 28, true);
+    const dataOff = localHdr + 30 + lhNameLen + lhExtraLen;
+    files.push({ name, data: bytes.subarray(dataOff, dataOff + compSize) });
+  }
+  return files;
+}
+
+/* Eine einzelne Einheit als ZIP teilen (Web Share API, Fallback Download) */
+async function meTeileEinheitAlsZip(idx){
   const list = ladeGespeicherte();
-  const ausgewaehlt = list.filter(e => ME_SELECTION.has(e.id));
-  if(!ausgewaehlt.length){ alert("Keine Einheiten ausgewählt."); return; }
+  const e = list[idx];
+  if(!e){ alert("Einheit nicht gefunden."); return; }
+  if(!e.id){
+    e.id = "e_" + Date.now() + "_" + Math.floor(Math.random()*9999);
+    speichereGespeicherte(list);
+  }
+  const wrapped = {
+    _schema_version: "einheit_v1",
+    exportiert_am: new Date().toISOString(),
+    einheit: e
+  };
+  const safeId = e.id.replace(/[^A-Za-z0-9_-]/g, "_");
+  const datum = new Date().toISOString().slice(0,10);
+  const filename = `einheit_${safeId}_${datum}.zip`;
   const manifest = {
     format: "mtv-handball-einheiten",
     format_version: 1,
-    erstellt_am: new Date().toISOString(),
-    anzahl: ausgewaehlt.length,
-    erstellt_mit: "MTV Handball Trainingsplanung"
+    erstellt_am: new Date().toISOString()
   };
-  const eintraege = [{
-    name: "manifest.json",
-    data: JSON.stringify(manifest, null, 2)
-  }];
-  ausgewaehlt.forEach(e => {
-    const wrapped = {
-      _schema_version: "einheit_v1",
-      exportiert_am: new Date().toISOString(),
-      einheit: e
-    };
-    const safeId = (e.id || "unbekannt").replace(/[^A-Za-z0-9_-]/g, "_");
-    eintraege.push({
-      name: `einheiten/${safeId}.json`,
-      data: JSON.stringify(wrapped, null, 2)
-    });
-  });
-  const blob = schreibeZip(eintraege);
-  const datum = new Date().toISOString().slice(0,10);
-  const filename = `mtv-einheiten_${datum}_${ausgewaehlt.length}.zip`;
-
-  // Web Share API mit File-Support: idealer Weg auf iOS/Mobile
+  const blob = meSchreibeZip([
+    { name: "manifest.json", data: JSON.stringify(manifest, null, 2) },
+    { name: "einheit.json",  data: JSON.stringify(wrapped, null, 2) }
+  ]);
   try{
     const file = new File([blob], filename, { type: "application/zip" });
     if(navigator.canShare && navigator.canShare({ files: [file] })){
-      await navigator.share({
-        files: [file],
-        title: filename,
-        text: `${ausgewaehlt.length} Trainings-Einheiten`
-      });
+      await navigator.share({ files: [file], title: filename });
       return;
     }
   }catch(err){
-    // Share abgebrochen oder nicht möglich — fällt unten auf Download zurück
-    if(err && err.name === "AbortError") return; // Nutzer hat Teilen abgebrochen
+    if(err && err.name === "AbortError") return;
   }
-  // Fallback: klassischer Download
+  // Fallback: Download
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.rel = "noopener";
+  a.href = url; a.download = filename; a.rel = "noopener";
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
 }
 
-/* Vergleich zweier Einheiten: identischer Inhalt? (ohne plan_datum/kommentar/rating,
-   weil das persönliche Notizen sind die nicht den Inhalt definieren) */
-function meEinheitenInhaltGleich(a, b){
-  const norm = e => ({
-    schnitt: e.schnitt, modus: e.modus, gesamt_dauer: e.gesamt_dauer,
-    optionen: e.optionen,
-    aufwaermen: (e.aufwaermen||[]).map(m=>({id:m.id,duration_min:m.duration_min})),
-    hauptteil:  (e.hauptteil ||[]).map(m=>({id:m.id,duration_min:m.duration_min})),
-    ausklang:   (e.ausklang  ||[]).map(m=>({id:m.id,duration_min:m.duration_min}))
-  });
-  return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
-}
-
-/* Import: Datei auswählen, parsen, Vorschau-Dialog zeigen */
-async function meImportiereZip(file){
+/* Import: ZIP einlesen, Einheiten finden, bei Konflikt fragen */
+async function meImportiereZipDatei(file){
   let files;
   try{
     const ab = await file.arrayBuffer();
-    files = leseZipBytes(ab);
+    files = meLeseZip(ab);
   }catch(err){
     alert("ZIP konnte nicht gelesen werden: " + err.message);
     return;
   }
-  // manifest.json suchen (auch wenn das ZIP in einem Unterordner verschachtelt ist)
-  const mf = files.find(f => f.name === "manifest.json" || f.name.endsWith("/manifest.json"));
-  if(mf){
-    try{
-      const m = JSON.parse(new TextDecoder().decode(mf.data));
-      if(m.format && m.format !== "mtv-handball-einheiten"){
-        alert("Falsches ZIP-Format: dieses Archiv ist für \"" + m.format + "\".\nDieser Import erwartet Einheiten.");
-        return;
-      }
-    }catch(e){ /* manifest ist optional/parsebar-Fehler ignorieren */ }
-  }
-  // Alle .json-Dateien probeweise als Einheit lesen, struktur-basiert filtern
-  // (Pfad ist egal — manche Archivierer/Sharing-Apps verschachteln das ZIP)
-  const candidates = [];
+  // Alle .json-Dateien probeweise als Einheit lesen (außer manifest)
+  const kandidaten = [];
   files.forEach(f => {
     if(!f.name.toLowerCase().endsWith(".json")) return;
-    if(f.name.endsWith("manifest.json")) return;
+    if(f.name.toLowerCase().endsWith("manifest.json")) return;
     try{
-      const text = new TextDecoder().decode(f.data);
-      const parsed = JSON.parse(text);
+      const parsed = JSON.parse(new TextDecoder().decode(f.data));
       const e = parsed.einheit || parsed;
-      // Eine Einheit hat zwingend id + die drei Block-Arrays
-      if(e && e.id && Array.isArray(e.aufwaermen) && Array.isArray(e.hauptteil) && Array.isArray(e.ausklang)){
-        candidates.push(e);
+      if(e && Array.isArray(e.aufwaermen) && Array.isArray(e.hauptteil) && Array.isArray(e.ausklang)){
+        // ID notfalls auf der Stelle erzeugen, falls keine vorhanden
+        if(!e.id) e.id = "e_imp_" + Date.now() + "_" + Math.floor(Math.random()*9999);
+        kandidaten.push(e);
       }
-    }catch(err){ /* Eintrag überspringen */ }
+    }catch(err){}
   });
-  if(!candidates.length){
+  if(!kandidaten.length){
     alert("Keine importierbaren Einheiten im ZIP gefunden.");
     return;
   }
-  // Existing-Map
-  const existing = ladeGespeicherte();
-  const byId = new Map(existing.map(e => [e.id, e]));
-  const neu = [], gleich = [], konflikte = [];
-  candidates.forEach(c => {
-    if(!byId.has(c.id)) neu.push(c);
-    else if(meEinheitenInhaltGleich(c, byId.get(c.id))) gleich.push(c);
-    else konflikte.push({ neu: c, alt: byId.get(c.id) });
-  });
-  meZeigeImportDialog({ neu, gleich, konflikte, alle: candidates });
-}
-
-function meZeigeImportDialog(state){
-  const dlg = document.getElementById("impDialog");
-  const inner = document.getElementById("impDialogInner");
-  inner.innerHTML = `
-    <h3>Aus ZIP importieren</h3>
-    <div class="imp-stats">
-      Im ZIP gefunden: <strong>${state.alle.length}</strong> Einheiten<br>
-      <span class="s-ok">${state.neu.length} neu</span> · 
-      <span class="s-skip">${state.gleich.length} identisch (übersprungen)</span> · 
-      <span class="s-conf">${state.konflikte.length} Konflikte</span>
-    </div>
-    ${state.konflikte.length ? `<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Bei Konflikten wirst du im nächsten Schritt pro Eintrag gefragt.</div>` : ""}
-    <div class="imp-buttons">
-      <button onclick="meImportAbbrechen()">Abbrechen</button>
-      <button class="primary" onclick='meImportStarten()'>Import starten</button>
-    </div>
-  `;
-  ME_IMPORT_STATE = state;
-  dlg.classList.add("show");
-}
-
-let ME_IMPORT_STATE = null;
-let ME_IMPORT_APPLY_ALL = null; // "alt" | "neu" | null
-
-function meImportAbbrechen(){
-  document.getElementById("impDialog").classList.remove("show");
-  ME_IMPORT_STATE = null; ME_IMPORT_APPLY_ALL = null;
-}
-
-async function meImportStarten(){
-  const s = ME_IMPORT_STATE;
-  if(!s) return;
-  // Konflikte sequenziell abarbeiten
-  const entscheidungen = new Map(); // id -> "alt"|"neu"
-  for(const k of s.konflikte){
-    let wahl = ME_IMPORT_APPLY_ALL;
-    if(!wahl){
-      wahl = await meFrageKonflikt(k);
-      if(wahl === "abbruch"){ meImportAbbrechen(); return; }
-    }
-    entscheidungen.set(k.neu.id, wahl);
-  }
-  // Übernehmen
+  // Sequenziell durchgehen, bei Konflikten fragen
   const list = ladeGespeicherte();
-  const byId = new Map(list.map(e => [e.id, e]));
-  let neuCount = 0, ersetzt = 0;
-  s.neu.forEach(e => { list.unshift(e); neuCount++; });
-  s.konflikte.forEach(k => {
-    const w = entscheidungen.get(k.neu.id);
-    if(w === "neu"){
-      const idx = list.findIndex(x => x.id === k.neu.id);
-      if(idx >= 0) list[idx] = k.neu;
-      ersetzt++;
+  let neu = 0, ersetzt = 0, uebersprungen = 0;
+  for(const k of kandidaten){
+    const idx = list.findIndex(x => x.id === k.id);
+    if(idx < 0){
+      list.unshift(k);
+      neu++;
+    } else {
+      const wahl = await meFrageImportKonflikt(k, list[idx]);
+      if(wahl === "ersetzen"){ list[idx] = k; ersetzt++; }
+      else uebersprungen++;
     }
-  });
-  if(list.length > 80) list.length = 80; // hartes Limit beibehalten
+  }
+  if(list.length > 50) list.length = 50;
   speichereGespeicherte(list);
-  ME_SELECTION.clear();
   renderEinheiten();
-  meUpdateBulkUi();
-  document.getElementById("impDialog").classList.remove("show");
-  ME_IMPORT_STATE = null; ME_IMPORT_APPLY_ALL = null;
-  alert(`Import abgeschlossen.\n${neuCount} neu hinzugefügt, ${ersetzt} ersetzt, ${s.gleich.length} unverändert.`);
+  alert(`Import abgeschlossen.\n${neu} neu, ${ersetzt} ersetzt, ${uebersprungen} unverändert.`);
 }
 
-/* Pro Konflikt einen Modal-Dialog zeigen, der eine Promise zurückgibt
-   mit der Entscheidung ("alt"/"neu"/"abbruch"). */
-function meFrageKonflikt(k){
+function meFrageImportKonflikt(neu, alt){
   return new Promise(resolve => {
-    const inner = document.getElementById("impDialogInner");
+    const dlg = document.getElementById("meImpDialog");
+    const inner = document.getElementById("meImpDialogInner");
     const fmtMods = e => (e.aufwaermen.length + e.hauptteil.length + e.ausklang.length);
     const fmtDat = d => d ? new Date(d).toLocaleDateString("de-DE") : "—";
     inner.innerHTML = `
-      <h3>Konflikt</h3>
-      <div class="imp-conflict-info">
-        <div class="ci-title">Einheit: <code>${esc(k.neu.id)}</code></div>
-        <div class="ci-row"><strong>Vorhanden:</strong> ${fmtMods(k.alt)} Module · ${k.alt.gesamt_dauer} min · gespeichert ${fmtDat(k.alt.gespeichert_am)}</div>
-        <div class="ci-row"><strong>Im ZIP:</strong> ${fmtMods(k.neu)} Module · ${k.neu.gesamt_dauer} min · gespeichert ${fmtDat(k.neu.gespeichert_am)}</div>
+      <h3>Einheit existiert bereits</h3>
+      <div class="imp-info">
+        <div><code>${esc(neu.id)}</code></div>
+        <div style="margin-top:6px"><strong>Bei dir:</strong> ${fmtMods(alt)} Module · ${alt.gesamt_dauer} min · ${fmtDat(alt.gespeichert_am)}</div>
+        <div><strong>Im ZIP:</strong> ${fmtMods(neu)} Module · ${neu.gesamt_dauer} min · ${fmtDat(neu.gespeichert_am)}</div>
       </div>
-      <label class="imp-apply-all">
-        <input type="checkbox" id="impApplyAll">
-        Diese Wahl auf alle weiteren Konflikte anwenden
-      </label>
       <div class="imp-buttons">
-        <button onclick="meKonfliktAntwort('abbruch')">Abbrechen</button>
-        <button onclick="meKonfliktAntwort('alt')">Eigene behalten</button>
-        <button class="primary" onclick="meKonfliktAntwort('neu')">ZIP-Version übernehmen</button>
+        <button onclick="meImportEntscheidung('uebersprungen')">Eigene behalten</button>
+        <button class="primary" onclick="meImportEntscheidung('ersetzen')">ZIP-Version übernehmen</button>
       </div>
     `;
-    window._meKonfliktResolver = (wahl)=>{
-      const applyAll = document.getElementById("impApplyAll")?.checked;
-      if(applyAll && wahl !== "abbruch") ME_IMPORT_APPLY_ALL = wahl;
+    window._meImportResolver = (wahl)=>{
+      dlg.classList.remove("show");
       resolve(wahl);
     };
+    dlg.classList.add("show");
   });
 }
-function meKonfliktAntwort(w){ window._meKonfliktResolver?.(w); }
+function meImportEntscheidung(w){ window._meImportResolver?.(w); }
 
-/* Event-Listener für Bulk-UI initialisieren */
-function meInitBulkUi(){
-  document.getElementById("meBulkAll")?.addEventListener("click", ()=>{
-    const list = ladeGespeicherte();
-    const allOn = list.length > 0 && list.every(e => ME_SELECTION.has(e.id));
-    if(allOn) ME_SELECTION.clear();
-    else list.forEach(e => ME_SELECTION.add(e.id));
-    meUpdateBulkUi();
-  });
-  document.getElementById("meBulkExport")?.addEventListener("click", meExportierenZip);
-  document.getElementById("meBulkImportFile")?.addEventListener("change", (ev)=>{
-    const f = ev.target.files?.[0];
-    if(f) meImportiereZip(f);
-    ev.target.value = "";
-  });
-}
+/* Listener für den zentralen Import-Button */
+document.getElementById("meImportBtn")?.addEventListener("click", ()=>{
+  document.getElementById("meImportFile").click();
+});
+document.getElementById("meImportFile")?.addEventListener("change", (ev)=>{
+  const f = ev.target.files?.[0];
+  if(f) meImportiereZipDatei(f);
+  ev.target.value = "";
+});
+
 
 function ladeSerienAuswahl(){
   const sel = document.getElementById("gSerieWahl");
@@ -3390,6 +3171,7 @@ function speichereEinheit(){
   if(!GEN_LETZTE) return;
   const list = ladeGespeicherte();
   const slim = {
+    id: "e_" + Date.now() + "_" + Math.floor(Math.random()*9999),
     modus: GEN_LETZTE.modus,
     ziel_dauer: GEN_LETZTE.ziel_dauer,
     gesamt_dauer: GEN_LETZTE.gesamt_dauer,
@@ -17303,7 +17085,6 @@ async function ladeDaten(){
   initFilter();
   render();
   if(typeof initGenerator === "function" && MODULES.length) initGenerator();
-  meInitBulkUi();
 }
 
 ladeDaten();
