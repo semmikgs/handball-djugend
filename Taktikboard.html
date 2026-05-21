@@ -447,8 +447,14 @@ button{font-family:inherit}
 
     <div class="tb-spacer"></div>
 
-    <button class="tb-action primary tb-icon-btn" id="btnOpenSave" title="Konstellationen verwalten (speichern / laden)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 11v6"/><path d="M9 14l3-3 3 3"/><path d="M9 16l3 3 3-3" opacity="0.55"/></svg>
+    <button class="tb-action tb-icon-btn" id="btnOpenSave" title="Konstellationen verwalten (speichern / laden)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
+        <path d="M8 14l-2-2 2-2"/>
+        <path d="M6 12h6"/>
+        <path d="M16 10l2 2-2 2"/>
+        <path d="M18 12h-6"/>
+      </svg>
     </button>
     <button class="tb-action tb-icon-btn" id="btnPrint" title="Als PDF drucken">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -2842,6 +2848,11 @@ document.getElementById("btnPrint").addEventListener("click", druckeAktuelles);
 
 function druckeAktuelles(){
   finishTextEditing();
+  const btn = document.getElementById("btnPrint");
+  if(btn) btn.blur();
+  if(document.activeElement && document.activeElement.blur) {
+    try { document.activeElement.blur(); } catch(e) {}
+  }
   const def = AUSSCHNITTE[STATE.schnitt];
   const svgClone = document.getElementById("board").cloneNode(true);
   svgClone.removeAttribute("style"); svgClone.removeAttribute("class");
@@ -2858,7 +2869,26 @@ function druckeAktuelles(){
       </div>
     </div>
     <div class="pv-board">${svgClone.outerHTML}</div>`;
-  setTimeout(()=>window.print(), 100);
+  starteDruck(btn);
+}
+
+/* Gemeinsame Druck-Routine mit sauberer Aufräumarbeit, auch bei Abbruch */
+function starteDruck(focusEl){
+  let raeumteAuf = false;
+  const aufraeumen = ()=>{
+    if(raeumteAuf) return;
+    raeumteAuf = true;
+    document.getElementById("printView").innerHTML = "";
+    if(focusEl) focusEl.blur();
+    window.removeEventListener("afterprint", aufraeumen);
+  };
+  window.addEventListener("afterprint", aufraeumen);
+  // Sicherheits-Fallback: falls afterprint nicht feuert (iOS-Bug)
+  setTimeout(aufraeumen, 4000);
+  setTimeout(()=>{
+    try { window.print(); }
+    catch(e) { aufraeumen(); }
+  }, 100);
 }
 
 window.druckeKonst = function(id){
@@ -2874,7 +2904,6 @@ window.druckeKonst = function(id){
     const def = AUSSCHNITTE[STATE.schnitt];
     const svgClone = document.getElementById("board").cloneNode(true);
     svgClone.removeAttribute("class"); svgClone.removeAttribute("style");
-    // Im gedruckten SVG: Rahmen/Griffe entfernen, damit auch ohne Print-CSS sauber
     svgClone.querySelectorAll(".tb-textbox-handle, .tb-textbox-frame").forEach(el => el.remove());
     inlineSvgColors(svgClone);
     const dat = new Date(k.gespeichert_am).toLocaleString("de-DE");
@@ -2892,12 +2921,20 @@ window.druckeKonst = function(id){
       </div>
       <div class="pv-board">${svgClone.outerHTML}</div>
       ${k.kommentar?`<div class="pv-foot"><div class="pv-comment"><b>Kommentar:</b> ${esc(k.kommentar)}</div></div>`:""}`;
-    window.print();
-    setTimeout(()=>{
+    // Sauberer Druck-Cleanup, auch wenn der Druck abgebrochen wird
+    let raeumteAuf = false;
+    const aufraeumen = ()=>{
+      if(raeumteAuf) return;
+      raeumteAuf = true;
+      document.getElementById("printView").innerHTML = "";
       STATE.tokens = savedTokens; STATE.lines = savedLines; STATE.texts = savedTexts; STATE.schnitt = savedSchnitt;
       document.getElementById("selAusschnitt").value = savedSchnitt;
       renderBoard();
-    }, 200);
+      window.removeEventListener("afterprint", aufraeumen);
+    };
+    window.addEventListener("afterprint", aufraeumen);
+    setTimeout(aufraeumen, 4000); // Fallback falls afterprint nicht feuert
+    try { window.print(); } catch(e) { aufraeumen(); }
   }, 100);
 };
 
