@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff8a00"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3ec1ff"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2ea043"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c8102e"/>
+    </marker>
+  </defs>
+  <symbol id="VIS-TE-A-PASS-021" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="120" cy="290" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="270" cy="160" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="270" y="164" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 140 290 Q 200 220 260 168" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Hohe Armposition — beide Seiten</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Peitschenwurf Grundform</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-PASS-022" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="340" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="344" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="328" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="270" cy="160" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="270" y="164" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 130 325 L 130 270" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 140 268 Q 200 210 262 168" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Anlauf → Peitschenwurf</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Peitschenwurf mit Anlauf</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-PASS-023" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="150" cy="260" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="150" y="264" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="138" cy="248" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="280" cy="160" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="280" y="164" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 150 245 L 150 200" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><circle cx="150" cy="190" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2" opacity="0.4"/><text x="150" y="194" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><path d="M 162 188 Q 215 168 272 162" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="90" y="185" font-size="8" fill="#c8102e">Sprung</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Pass im Scheitelpunkt des Sprungs</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Peitschenwurf aus der Luft</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-PASS-024" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="280" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="284" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="268" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="270" cy="280" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="270" y="284" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 145 272 L 255 272" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 255 275 L 145 275" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 140 268 Q 200 260 258 270" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="200" y="240" text-anchor="middle" font-size="9" fill="#c8102e">Nahhand übergeben</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Ball mit Körper schützen</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Pass im Kreuzungsspiel</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-PASS-025" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="288" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="200" cy="220" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="224" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><circle cx="300" cy="200" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="300" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 142 286 Q 200 180 292 202" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="185" y="175" font-size="8" fill="#3a3a3a">über</text><line x1="180" y1="215" x2="220" y2="215" stroke="#3ec1ff" stroke-width="2"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Hohe Armpos. → Pass über Zone</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Pass ueber die Zone</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-PASS-026" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="280" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="200" y="284" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="188" cy="268" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="310" cy="200" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="310" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><circle cx="90" cy="200" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="90" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A3</text><path d="M 188 275 L 120 275" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 210 270 Q 260 240 302 204" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="145" y="260" font-size="8" fill="#ff8a00">Lauf</text><text x="255" y="248" font-size="8" fill="#2ea043">Pass</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Bewegung andeuten — Pass in Gegenseite</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Pass in Gegenrichtung</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-PASS-027" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="320" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="324" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="308" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="260" cy="320" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="260" y="324" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><circle cx="260" cy="200" r="10" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="260" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 260 308 L 260 215" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 143 312 Q 200 270 252 205" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="155" y="260" font-size="8" fill="#2ea043">Richtiger Moment</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Läufer in Bewegung versorgen</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Timing: Pass zum richtigen Moment</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-STOSS-009" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="260" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="264" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><circle cx="180" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="180" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><path d="M 178 287 L 148 247" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><circle cx="148" cy="235" r="10" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="148" y="239" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><text x="110" y="232" font-size="8" fill="#2ea043">bessere Pos.</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Kleiner Schritt → Vorteil vor Ballempfang</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Positionskorrektur ohne Ball</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-STOSS-010" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><rect x="193.0" y="213.0" width="14" height="14" fill="#c9bfa8"/><circle cx="200" cy="310" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="200" y="314" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><circle cx="188" cy="298" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><path d="M 192 298 L 145 230" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 200 295 L 200 235" fill="none" stroke="#c8102e" stroke-width="2" stroke-dasharray="4 3" opacity="0.5"/><text x="145" y="220" font-size="8" fill="#ff8a00">echte Richtg.</text><text x="205" y="255" font-size="8" fill="#c8102e" opacity="0.7">Täuschg.</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Finte: Täuschen — dann explosiv vorbei</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Finte Grundform beidseits</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-STOSS-011" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="220" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="224" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><circle cx="200" cy="310" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="200" y="314" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><circle cx="188" cy="298" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><path d="M 200 296 L 200 237" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 200 234 L 150 180" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><text x="175" y="215" font-size="8" fill="#c8102e">Kontakt</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Kontakt annehmen — Arm frei halten</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Finte mit Koerperkontakt</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-STOSS-012" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="200" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><circle cx="200" cy="340" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="200" y="344" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><circle cx="188" cy="328" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><path d="M 200 325 L 200 260" fill="none" stroke="#ff8a00" stroke-width="1.5" stroke-dasharray="4 6" marker-end="url(#arrowOrange)"/><path d="M 200 257 L 155 195" fill="none" stroke="#ff8a00" stroke-width="3" stroke-dasharray="6 3" marker-end="url(#arrowOrange)"/><text x="145" y="265" font-size="8" fill="#3a3a3a">langsam</text><text x="148" y="222" font-size="8" fill="#c8102e">explosiv!</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Verzögern — dann Tempowechsel</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Rhythmuswechsel im Paedrag</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-TAUSCH-001" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="288" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="270" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="270" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 144 293 L 256 207" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 256 293 L 144 207" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 130 286 Q 200 248 268 207" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="200" y="245" text-anchor="middle" font-size="8" fill="#c8102e">Nahhand</text><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Ball durch Körper schützen</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Kreuzungsspiel: Nahhand</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-TAUSCH-002" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="130" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="288" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="270" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="270" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><circle cx="200" cy="255" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="259" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><path d="M 144 293 L 256 207" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 256 293 L 144 207" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 130 286 Q 200 248 268 207" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Kreuzung gegen aktive Abwehr</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Kreuzung mit Abwehrspieler</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-WURF-009" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="25" r="14" fill="#5dd39e" stroke="#1a5a3a" stroke-width="2"/><text x="200" y="29" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">TW</text><circle cx="200" cy="180" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="184" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><circle cx="200" cy="310" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="200" y="314" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><circle cx="188" cy="298" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><path d="M 200 296 L 160 185" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 155 178 L 195 42" fill="none" stroke="#c8102e" stroke-width="3" marker-end="url(#arrowRed)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Pädrag — Finte — Abschluss</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Abschluss nach Paedrag (Rueckraum)</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-WURF-010" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="25" r="14" fill="#5dd39e" stroke="#1a5a3a" stroke-width="2"/><text x="200" y="29" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">TW</text><circle cx="60" cy="200" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="60" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A</text><circle cx="48" cy="188" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><path d="M 68 190 Q 110 140 155 80" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 162 75 L 200 32" fill="none" stroke="#c8102e" stroke-width="3" marker-end="url(#arrowRed)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Anlauf — Absprung — spitzer Winkel</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Abschluss Aussen: Anlauf + Absprung</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-WURF-011" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="25" r="14" fill="#5dd39e" stroke="#1a5a3a" stroke-width="2"/><text x="200" y="29" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">TW</text><circle cx="160" cy="250" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="160" y="254" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="148" cy="238" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="280" cy="200" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="280" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 160 236 L 180 100" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 163 238 Q 220 215 272 202" fill="none" stroke="#2ea043" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arrowGreen)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">TW binden — dann Pass oder Abschluss</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Abschluss 2:1 mit Entscheidung</text>
+  </symbol>
+
+  <symbol id="VIS-TE-A-WURF-012" viewBox="0 0 400 400">
+    <rect x="0" y="0" width="400" height="400" fill="#f4f1ea"/>
+<rect x="10" y="10" width="380" height="380" fill="none" stroke="#c9bfa8" stroke-width="2.5"/>
+<rect x="160" y="6" width="80" height="8" fill="#3a3a3a"/>
+<path d="M 110 14 Q 200 140 290 14" fill="none" stroke="#7a6e54" stroke-width="2"/>
+<path d="M 80 14 Q 200 180 320 14" fill="none" stroke="#7a6e54" stroke-width="1.5" stroke-dasharray="6 4"/><circle cx="200" cy="25" r="14" fill="#5dd39e" stroke="#1a5a3a" stroke-width="2"/><text x="200" y="29" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">TW</text><circle cx="200" cy="200" r="12" fill="#3ec1ff" stroke="#0a4d63" stroke-width="2"/><text x="200" y="204" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">V</text><circle cx="130" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="130" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A1</text><circle cx="118" cy="288" r="6" fill="#ffd166" stroke="#7a5d00" stroke-width="1.5"/><circle cx="270" cy="300" r="12" fill="#ff8a00" stroke="#7a3d00" stroke-width="2"/><text x="270" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">A2</text><path d="M 144 293 L 256 207" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 256 293 L 144 207" fill="none" stroke="#ff8a00" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowOrange)"/><path d="M 148 200 L 195 42" fill="none" stroke="#c8102e" stroke-width="3" marker-end="url(#arrowRed)"/><text x="200" y="380" text-anchor="middle" font-size="9" fill="#3a3a3a">Kreuzung schafft Wurfraum</text><text x="200" y="40" text-anchor="middle" font-size="11" fill="#3a3a3a" font-weight="bold">Abschluss nach Kreuzung + Abwehr</text>
+  </symbol>
+
+</svg>

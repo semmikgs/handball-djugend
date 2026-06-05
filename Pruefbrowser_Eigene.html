@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Prüfbrowser — Eigene Module (126)</title>
+<style>
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,system-ui,sans-serif; background:#fafaf6; margin:0; padding:20px; color:#3a3a3a; }
+  h1 { color:#c8102e; margin:0 0 10px 0; }
+  .meta { color:#666; margin-bottom:18px; font-size:14px; }
+  .filter { background:#fff; padding:14px 18px; border:1px solid #d8d2c2; border-radius:8px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+  .filter label { font-size:13px; font-weight:600; }
+  .filter select, .filter input { padding:6px 10px; font-size:13px; border:1px solid #c9bfa8; border-radius:4px; background:#fff; }
+  .filter .pill { display:inline-block; padding:4px 10px; background:#c8102e; color:#fff; border-radius:12px; font-size:11px; cursor:pointer; }
+  .filter .pill.off { background:#e6e0d0; color:#666; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+  .card { background:#fff; border:1px solid #d8d2c2; border-radius:8px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .card.new { border-color:#c8102e; border-width:2px; }
+  .card .id { font-family:monospace; color:#7a3d00; font-size:11px; }
+  .card .badge-new { display:inline-block; background:#c8102e; color:#fff; font-size:10px; padding:2px 7px; border-radius:8px; margin-left:6px; }
+  .card h3 { margin:6px 0 8px 0; font-size:14px; }
+  .card .tags { font-size:11px; color:#666; margin-bottom:6px; }
+  .card .tags span { display:inline-block; padding:1px 7px; background:#f0ead8; border-radius:10px; margin-right:4px; }
+  .card svg.preview { width:100%; height:auto; border:1px solid #eee; background:#f4f1ea; border-radius:4px; }
+  .card .desc { font-size:12px; margin:8px 0; color:#444; }
+  .card details { margin-top:6px; font-size:12px; }
+  .card details summary { cursor:pointer; color:#0a4d63; font-weight:600; }
+  .card details > div { margin-top:6px; padding:6px; background:#fafaf6; border-radius:4px; }
+  .card details ul { margin:4px 0; padding-left:18px; }
+  .card .meta-line { font-size:11px; color:#888; margin-top:6px; }
+  .empty { text-align:center; padding:40px; color:#999; }
+</style>
+</head>
+<body>
+
+<h1>Prüfbrowser — Eigene Module</h1>
+<div class="meta" id="metaInfo">lade…</div>
+
+<div class="filter">
+  <label>Charge:
+    <select id="chargeFilter">
+      <option value="">Alle</option>
+      <option value="9" selected>Nur Charge 9 (neue)</option>
+      <option value="6">Charge 6 — Spielformen</option>
+      <option value="7">Charge 7 — Athletik</option>
+      <option value="8">Charge 8 — U6-U9 Grundlagen</option>
+      <option value="9">Charge 9 — Mattenball + Aufsetzerball</option>
+      <option value="1">Charge 1 — Kontra</option>
+      <option value="2">Charge 2 — FR-Lehrmittel</option>
+      <option value="3">Charge 3 — NHF Verteidigung</option>
+      <option value="4">Charge 4 — Pässe</option>
+      <option value="5">Charge 5 — Aufwärmen</option>
+    </select>
+  </label>
+  <label>Subkategorie:
+    <select id="subFilter"><option value="">Alle</option>
+      <option value="9" selected>Nur Charge 9 (neue)</option></select>
+  </label>
+  <label>Suche: <input id="searchBox" type="text" placeholder="Titel, Tag, …" style="width:220px"></label>
+  <span style="margin-left:auto" id="countBadge"></span>
+</div>
+
+<div id="grid" class="grid"></div>
+<div id="defs" style="display:none"></div>
+
+<script>
+const CHARGEN_MAP = {
+  charge1_kontra: 1, charge2_fr_lehrmittel: 2, charge3_nhf_verteidigung: 3,
+  charge4_paesse: 4, charge5_aufwaermen: 5, charge6_spielformen_wettkampf: 6, charge7_athletik: 7, charge8_u6u9_grundlagen: 8, charge9_lernkarten_aufsetzer: 9
+};
+
+async function load() {
+  const [jsonResp, svgResp] = await Promise.all([
+    fetch('F_Modules_Eigene.json'),
+    fetch('Visuals_Eigene.svg')
+  ]);
+  const data = await jsonResp.json();
+  const svgText = await svgResp.text();
+  document.getElementById('defs').innerHTML = svgText;
+
+  // Modul → Charge-Nummer ableiten
+  const idToCharge = {};
+  for (const [key, ids] of Object.entries(data._meta.chargen)) {
+    const nr = CHARGEN_MAP[key];
+    for (const id of ids) idToCharge[id] = nr;
+  }
+
+  const modules = data.modules.map(m => ({ ...m, _charge: idToCharge[m.id] || null }));
+
+  document.getElementById('metaInfo').innerHTML =
+    `<b>${modules.length} Module</b> gesamt · 9 Chargen · Stand: ${data._meta.stand} · Charge 6 markiert mit roter Umrandung`;
+
+  // Subkat-Filter füllen
+  const subSet = [...new Set(modules.map(m => m.subcategory))].sort();
+  const subFilter = document.getElementById('subFilter');
+  for (const s of subSet) {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    subFilter.appendChild(o);
+  }
+
+  function render() {
+    const c = document.getElementById('chargeFilter').value;
+    const s = document.getElementById('subFilter').value;
+    const q = document.getElementById('searchBox').value.toLowerCase();
+    const filtered = modules.filter(m => {
+      if (c && String(m._charge) !== c) return false;
+      if (s && m.subcategory !== s) return false;
+      if (q) {
+        const txt = (m.id+' '+m.title+' '+(m.tags||[]).join(' ')+' '+m.description).toLowerCase();
+        if (!txt.includes(q)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById('countBadge').textContent = `${filtered.length} angezeigt`;
+
+    const grid = document.getElementById('grid');
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty">Keine Module passen zum Filter.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(m => {
+      const isNew = m._charge === 6;
+      const vis = m.visualization?.asset_id;
+      // viewBox: Ganzfeld erkennen
+      const isFull = vis === 'VIS-US-MINI-007';
+      const vb = isFull ? '0 0 400 600' : '0 0 400 400';
+      const phases = (m.phases || []).map(p =>
+        `<li><b>${p.name}</b> (${p.duration_min}min): ${p.description}</li>`
+      ).join('');
+      const variations = (m.variations || []).map(v => `<li>${v}</li>`).join('');
+      const cp = (m.coaching_points || []).map(p => `<li>${p}</li>`).join('');
+      const tags = (m.tags || []).slice(0,5).map(t => `<span>${t}</span>`).join('');
+      return `
+      <div class="card ${isNew?'new':''}">
+        <div><span class="id">${m.id}</span>${isNew?'<span class="badge-new">NEU C6</span>':''}</div>
+        <h3>${m.title}</h3>
+        <div class="tags">${tags}</div>
+        ${vis ? `<svg class="preview" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"><use href="#${vis}"/></svg>` : '<div class="empty" style="padding:20px;font-size:12px">(keine Visualisierung)</div>'}
+        <div class="desc">${m.description}</div>
+        <div class="meta-line">
+          ${m.subcategory} · L${m.level} · ${m.duration_min}min · ${m.intensity} · ${m.players_min}–${m.players_max} Spieler · ${m.court_space}
+        </div>
+        <details><summary>Phasen, Coaching-Points, Varianten</summary>
+          <div>
+            <b>Phasen:</b><ul>${phases}</ul>
+            <b>Coaching-Points:</b><ul>${cp}</ul>
+            <b>Varianten:</b><ul>${variations}</ul>
+          </div>
+        </details>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('chargeFilter').addEventListener('change', render);
+  document.getElementById('subFilter').addEventListener('change', render);
+  document.getElementById('searchBox').addEventListener('input', render);
+  render();
+}
+load().catch(e => {
+  document.getElementById('metaInfo').textContent = 'Fehler: ' + e.message;
+});
+</script>
+</body>
+</html>
