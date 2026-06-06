@@ -880,9 +880,24 @@ function tokenSvg(kind, label, opts){
     }
     case "ball": {
       const br = r*0.55;
-      return `<circle r="${br}" fill="#f5f1e8" stroke="#1a1a1a" stroke-width="2"/>
-              <text y="${br*0.32}" text-anchor="middle" font-size="${br*0.62}"
-                fill="#1a1a1a" font-weight="700">Ball</text>`;
+      const hr = br * 0.39;
+      const hexPts = [0,60,120,180,240,300].map(a => {
+        const rad = a * Math.PI / 180;
+        return (Math.cos(rad)*hr).toFixed(1)+","+(Math.sin(rad)*hr).toFixed(1);
+      }).join(" ");
+      const mw = (hr + br) / 2;
+      const seams = [0,60,120,180,240,300].map(a => {
+        const rad = a * Math.PI / 180;
+        const ex = Math.cos(rad)*hr, ey = Math.sin(rad)*hr;
+        const mx = Math.cos(rad)*mw, my = Math.sin(rad)*mw;
+        const qx = (ex+mx)/2 + Math.sin(rad)*br*0.04;
+        const qy = (ey+my)/2 - Math.cos(rad)*br*0.04;
+        return `<path d="M${ex.toFixed(1)},${ey.toFixed(1)} Q${qx.toFixed(1)},${qy.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}" fill="none" stroke="#1a1a1a" stroke-width="${(br*0.04).toFixed(1)}"/>`;
+      }).join("");
+      return `<circle r="${br}" fill="#e53535" stroke="#1a1a1a" stroke-width="${(br*0.04).toFixed(1)}"/>
+              <polygon points="${hexPts}" fill="none" stroke="#1a1a1a" stroke-width="${(br*0.035).toFixed(1)}"/>
+              ${seams}
+              <circle r="${br}" fill="none" stroke="#1a1a1a" stroke-width="${(br*0.04).toFixed(1)}"/>`;
     }
     case "huetchen": {
       // Flaches rundes Hütchen, Farbe variabel (Default: Rot)
