@@ -847,7 +847,7 @@ const POOL_TW   = ["TW"];
 const POOL_TH   = ["TH"];   // Trainingshelfer
 const POOL_SUB  = ["W1","W2"];
 const POOL_BALL = ["B","Medi"];
-const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte"];
+const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte","Kl. Kasten","Sprungkasten"];
 
 function tokenSvg(kind, label, opts){
   opts = opts || {};
@@ -923,6 +923,32 @@ function tokenSvg(kind, label, opts){
                 fill="none" stroke="#7aa0d0" stroke-width="1" rx="2"/>
               <text y="${r*0.15}" text-anchor="middle" font-size="${r*0.5}"
                 fill="#fff" font-weight="700" opacity="0.9">MATTE</text>`;
+    }
+    case "kasten_klein": {
+      // Kleiner Sprungkasten (1-teilig): ca. halb so breit wie Matte
+      const kw = r*1.5, kh = r*0.9;
+      return `<rect x="${-kw/2}" y="${-kh/2}" width="${kw}" height="${kh}"
+                fill="#D4A96A" stroke="#8B6333" stroke-width="2" rx="3"/>
+              <rect x="${-kw/2}" y="${-kh/2}" width="${kw}" height="${kh*0.18}"
+                fill="#E8C49A" stroke="#8B6333" stroke-width="1" rx="2"/>
+              <text y="${r*0.12}" text-anchor="middle" font-size="${r*0.38}"
+                fill="#5C3A10" font-weight="700" opacity="0.85">KASTEN</text>`;
+    }
+    case "kasten_gross": {
+      // Großer Sprungkasten (5-teilig): mattenlang, 5 Etagen sichtbar
+      const gw = r*3.0, gh = r*1.8;
+      const ew = gh / 5; // Etagenhöhe
+      const etLines = [1,2,3,4].map(i =>
+        `<line x1="${-gw/2}" y1="${-gh/2 + ew*i}" x2="${gw/2}" y2="${-gh/2 + ew*i}"
+           stroke="#8B6333" stroke-width="1" opacity="0.7"/>`
+      ).join('');
+      return `<rect x="${-gw/2}" y="${-gh/2}" width="${gw}" height="${gh}"
+                fill="#D4A96A" stroke="#8B6333" stroke-width="2" rx="3"/>
+              <rect x="${-gw/2}" y="${-gh/2}" width="${gw}" height="${ew}"
+                fill="#E8C49A" stroke="#8B6333" stroke-width="1" rx="2"/>
+              ${etLines}
+              <text y="${r*0.15}" text-anchor="middle" font-size="${r*0.38}"
+                fill="#5C3A10" font-weight="700" opacity="0.85">SPRUNGKASTEN</text>`;
     }
     case "ring": {
       // Gymnastikreifen: Doppelkreis (Ring), Farbe durchschaltbar wie Hütchen
@@ -1011,7 +1037,7 @@ function renderBank(){
   // Material: jedes Element hat eigenes kind, kein Label
   const elMat = document.getElementById("bankMat");
   if(elMat){
-    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte"};
+    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte", "Kl. Kasten":"kasten_klein", "Sprungkasten":"kasten_gross"};
     elMat.innerHTML = POOL_MAT.map(lab => {
       const r = 30;
       const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
@@ -1245,7 +1271,7 @@ let lastDoubleTokenId = null;
 /* DOPPELKLICK + LONG-PRESS — gemeinsame Aktion */
 function handleTokenLongAction(tok, targetEl){
   // Bank/Matte: 22,5° rechtsherum drehen
-  if(tok.kind === "bank" || tok.kind === "matte"){
+  if(tok.kind === "bank" || tok.kind === "matte" || tok.kind === "kasten_klein" || tok.kind === "kasten_gross"){
     pushHistory();
     tok.rotation = ((tok.rotation || 0) + 22.5) % 360;
     renderBoard();
