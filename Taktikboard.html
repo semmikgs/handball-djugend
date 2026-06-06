@@ -99,8 +99,8 @@ button{font-family:inherit}
 .tb-pen.pen-rund{color:var(--pen-rund)}
 .tb-pen.pen-pass{color:var(--pen-pass)}
 .tb-pen.pen-shot{color:var(--pen-shot)}
-.tb-pen.pen-erase{color:var(--muted)}
-.tb-pen.pen-free{color:#c8ccd4}
+.tb-pen.pen-erase{color:var(--ink)}
+.tb-pen.pen-free{color:var(--ink)}
 .tb-pen.pen-free[aria-pressed="true"]{color:#ff8a00}
 .tb-pen svg{width:16px;height:16px}
 
@@ -124,7 +124,7 @@ button{font-family:inherit}
 .pp-size:hover{border-color:var(--accent)}
 
 /* Text-Werkzeug Stil */
-.tb-pen.pen-text{color:#c8ccd4}
+.tb-pen.pen-text{color:var(--ink)}
 .tb-pen.pen-text[aria-pressed="true"]{color:var(--accent)}
 .tb-pen.pen-text .pt-letter{font-family:Georgia,serif;font-weight:700;font-size:15px;line-height:1}
 .text-palette{position:absolute;background:var(--bg-elevated);
@@ -1204,7 +1204,7 @@ function makeLineEl(l){
 let dragInfo = null;
 
 function onBankPointerDown(ev){
-  if(STATE.mode !== "select") return;
+  if(STATE.mode !== "select") setMode("select");
   ev.preventDefault();
   const item = ev.currentTarget;
   const kind  = item.dataset.kind;
