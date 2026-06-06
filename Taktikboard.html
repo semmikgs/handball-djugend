@@ -847,7 +847,7 @@ const POOL_TW   = ["TW"];
 const POOL_TH   = ["TH"];   // Trainingshelfer
 const POOL_SUB  = ["W1","W2"];
 const POOL_BALL = ["B","Medi"];
-const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte","Kl. Kasten","Sprungkasten"];
+const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte","Kl. Kasten","Sprungkasten","Balken","Koord.Leiter"];
 
 function tokenSvg(kind, label, opts){
   opts = opts || {};
@@ -931,7 +931,7 @@ function tokenSvg(kind, label, opts){
                 fill="#D4A96A" stroke="#8B6333" stroke-width="2" rx="3"/>
               <rect x="${-kw/2}" y="${-kh/2}" width="${kw}" height="${kh*0.18}"
                 fill="#E8C49A" stroke="#8B6333" stroke-width="1" rx="2"/>
-              <text y="${r*0.12}" text-anchor="middle" font-size="${r*0.38}"
+              <text y="${r*0.12}" text-anchor="middle" font-size="${r*0.28}"
                 fill="#5C3A10" font-weight="700" opacity="0.85">KASTEN</text>`;
     }
     case "kasten_gross": {
@@ -947,8 +947,35 @@ function tokenSvg(kind, label, opts){
               <rect x="${-gw/2}" y="${-gh/2}" width="${gw}" height="${ew}"
                 fill="#E8C49A" stroke="#8B6333" stroke-width="1" rx="2"/>
               ${etLines}
-              <text y="${r*0.15}" text-anchor="middle" font-size="${r*0.38}"
+              <text y="${r*0.15}" text-anchor="middle" font-size="${r*0.28}"
                 fill="#5C3A10" font-weight="700" opacity="0.85">SPRUNGKASTEN</text>`;
+    }
+    case "balken": {
+      // Schaumstoffbalken: dünn (r*0.25 hoch) und lang (r*3.0 breit), hellbraun
+      const bw = r*3.0, bh = r*0.4;
+      return `<rect x="${-bw/2}" y="${-bh/2}" width="${bw}" height="${bh}"
+                fill="#D4A96A" stroke="#8B6333" stroke-width="1.5" rx="3"/>
+              <rect x="${-bw/2+3}" y="${-bh/2+2}" width="${bw-6}" height="${bh-4}"
+                fill="none" stroke="#C49055" stroke-width="0.8" rx="2"/>
+              <text y="${r*0.07}" text-anchor="middle" font-size="${r*0.22}"
+                fill="#5C3A10" font-weight="700" opacity="0.85">BALKEN</text>`;
+    }
+    case "koordleiter": {
+      // Koordinationsleiter: 2× Mattenlänge breit, halbe Mattenbreite hoch
+      const lw = r*6.0, lh = r*0.9;
+      const holmH = lh * 0.16;
+      const sprosse = 10;
+      const step = lw / (sprosse + 1);
+      const sprosseW = step * 0.18;
+      const sprossen = Array.from({length: sprosse}, (_,i) =>
+        `<rect x="${-lw/2 + step*(i+1) - sprosseW/2}" y="${-lh/2}"
+           width="${sprosseW}" height="${lh}" rx="1" fill="#facc15"/>`
+      ).join('');
+      return `${sprossen}
+              <rect x="${-lw/2}" y="${-lh/2}" width="${lw}" height="${holmH}"
+                rx="2" fill="#222"/>
+              <rect x="${-lw/2}" y="${lh/2 - holmH}" width="${lw}" height="${holmH}"
+                rx="2" fill="#222"/>`;
     }
     case "ring": {
       // Gymnastikreifen: Doppelkreis (Ring), Farbe durchschaltbar wie Hütchen
@@ -1037,7 +1064,7 @@ function renderBank(){
   // Material: jedes Element hat eigenes kind, kein Label
   const elMat = document.getElementById("bankMat");
   if(elMat){
-    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte", "Kl. Kasten":"kasten_klein", "Sprungkasten":"kasten_gross"};
+    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte", "Kl. Kasten":"kasten_klein", "Sprungkasten":"kasten_gross", "Balken":"balken", "Koord.Leiter":"koordleiter"};
     elMat.innerHTML = POOL_MAT.map(lab => {
       const r = 30;
       const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
@@ -1271,7 +1298,7 @@ let lastDoubleTokenId = null;
 /* DOPPELKLICK + LONG-PRESS — gemeinsame Aktion */
 function handleTokenLongAction(tok, targetEl){
   // Bank/Matte: 22,5° rechtsherum drehen
-  if(tok.kind === "bank" || tok.kind === "matte" || tok.kind === "kasten_klein" || tok.kind === "kasten_gross"){
+  if(tok.kind === "bank" || tok.kind === "matte" || tok.kind === "kasten_klein" || tok.kind === "kasten_gross" || tok.kind === "balken" || tok.kind === "koordleiter"){
     pushHistory();
     tok.rotation = ((tok.rotation || 0) + 22.5) % 360;
     renderBoard();
