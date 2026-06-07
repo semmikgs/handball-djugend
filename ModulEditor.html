@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTV Modul-Editor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+:root{
+  --bg:#fff;--bg-el:#f7f7f7;--bg-pg:#f0ede8;
+  --ink:#1a1a1a;--ink-s:#3a3a3a;--muted:#6b6b6b;
+  --line:#e2e2e2;--line-s:#c4c4c4;
+  --acc:#c8102e;--acc-dk:#a30d24;--acc-lt:#fdf0f2;
+  --good:#2e9e6e;--good-bg:#edfaf4;
+  --court-bg:#f4eee2;
+  --r:6px;--sh:0 1px 4px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg-pg);color:var(--ink);font-size:14px;line-height:1.5;}
+header{background:var(--ink);color:#fff;padding:0 18px;height:46px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--acc);position:sticky;top:0;z-index:200;}
+.logo{width:28px;height:28px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:#fff;flex-shrink:0;}
+header h1{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;}
+header h1 em{color:var(--acc);font-style:normal;}
+.hsub{font-size:11px;color:#888;font-family:'DM Mono',monospace;}
+.hact{margin-left:auto;display:flex;gap:7px;align-items:center;}
+.gbar{background:var(--ink);border-bottom:1px solid #2a2a2a;padding:6px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:46px;z-index:190;}
+.gbar-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#888;white-space:nowrap;}
+.gbar-track{flex:1;height:8px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:4px;overflow:hidden;}
+.gbar-fill{height:100%;border-radius:4px;transition:width .4s,background-color .4s;}
+.gbar-pct{font-family:'DM Mono',monospace;font-size:11px;color:#eee;white-space:nowrap;min-width:36px;text-align:right;}
+.layout{display:grid;grid-template-columns:1fr 350px;min-height:calc(100vh - 72px);}
+.main{padding:14px 16px;overflow-y:auto;}
+.side{background:#111417;padding:14px;display:flex;flex-direction:column;position:sticky;top:72px;height:calc(100vh - 72px);border-left:1px solid #1e2028;}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;box-shadow:var(--sh);overflow:hidden;}
+.ch{background:var(--ink);color:#fff;padding:0 10px 0 13px;height:38px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;display:flex;align-items:center;gap:7px;border-bottom:2px solid var(--acc);}
+.ch-title{flex:1;cursor:pointer;padding-right:4px;}.ch-title:hover{color:#ddd;}
+.ch-track{width:80px;height:6px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.ch-fill{height:100%;border-radius:3px;transition:width .3s,background-color .3s;}
+.ch-pct{font-size:10px;color:#ddd;font-family:'DM Mono',monospace;min-width:28px;text-align:right;flex-shrink:0;}
+.pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:.4px;flex-shrink:0;}
+.pill-r{background:var(--acc);color:#fff;}.pill-g{background:#1a4a2e;color:#7ef7a4;}.pill-b{background:#1a2a4a;color:#9ab4ff;}.pill-y{background:#4a3a00;color:#ffd060;}
+.tog-btn{background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:2px 5px;line-height:1;flex-shrink:0;transition:color .1s;}.tog-btn:hover{color:#fff;}
+.cb{padding:13px 15px;}.cb.off{display:none;}
+.row{display:grid;gap:9px;margin-bottom:9px;}
+.c1{grid-template-columns:1fr;}.c2{grid-template-columns:1fr 1fr;}.c3{grid-template-columns:1fr 1fr 1fr;}.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
+label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:3px;letter-spacing:.3px;text-transform:uppercase;}
+.req{color:var(--acc);}
+.ab{display:inline-block;font-size:9px;background:var(--good);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700;text-transform:none;vertical-align:middle;margin-left:3px;}
+input[type=text],input[type=number],select,textarea{width:100%;padding:7px 9px;border:1.5px solid var(--line);border-radius:var(--r);font-family:'Barlow',sans-serif;font-size:13px;background:var(--bg-el);color:var(--ink);transition:border-color .15s,box-shadow .15s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(200,16,46,.08);}
+select.av{border-color:var(--good);background:#f0faf5;color:#1a4a2e;font-style:italic;}
+textarea{resize:vertical;min-height:70px;}
+.hint{border-radius:var(--r);padding:8px 12px;font-size:12px;margin-bottom:9px;}
+.hw{background:#fdf8ee;border:1px solid #e6d080;color:#5a4000;}
+.hi{background:#eef4ff;border:1px solid #b0c8f0;color:#1a3a7a;}
+.ha{background:var(--acc-lt);border:1px solid #f0b8c0;color:var(--acc-dk);}
+.dz{border:2px dashed var(--line-s);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;color:var(--muted);background:var(--bg-el);transition:all .15s;}
+.dz:hover,.dz.over{border-color:var(--acc);color:var(--acc);background:var(--acc-lt);}
+#svg-wrap{background:var(--court-bg);border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;line-height:0;}
+#svg-wrap svg{width:100%;height:auto;display:block;}
+.tw{display:flex;flex-wrap:wrap;gap:4px;align-items:center;border:1.5px solid var(--line);border-radius:var(--r);padding:5px 8px;background:var(--bg-el);min-height:34px;cursor:text;}
+.tw:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px rgba(200,16,46,.08);}
+.tw input{border:none;background:transparent;outline:none;font-size:12px;min-width:70px;flex:1;}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+.ck{background:var(--ink);color:#fff;}.ca{background:var(--acc);color:#fff;}.cs{background:var(--bg-pg);border:1px solid var(--line);color:var(--ink-s);}.cg{background:#1a4a2e;color:#7ef7a4;}
+.x{cursor:pointer;opacity:.6;font-size:12px;line-height:1;padding:0 1px;}.x:hover{opacity:1;}
+.sb{border:1.5px solid var(--line);border-radius:var(--r);background:var(--bg-el);overflow:hidden;}
+.sb input{border:none;background:transparent;padding:7px 10px;font-size:12px;display:block;width:100%;}
+.sb input:focus{outline:none;}
+.sr{max-height:140px;overflow-y:auto;border-top:1px solid var(--line);}
+.si{padding:6px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:7px;color:var(--ink-s);}
+.si:hover{background:var(--acc-lt);color:var(--ink);}
+.si .id{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.mat-sec{margin-bottom:10px;}.mat-sec-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.cg2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--line);}
+.cg2.two{grid-template-columns:1fr 1fr;}
+.ci{background:var(--bg-el);padding:5px 9px;}
+.ci label{font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-s);display:flex;align-items:center;gap:5px;cursor:pointer;}
+.ci label:hover{color:var(--ink);}
+.ci input[type=checkbox]{width:auto;accent-color:var(--acc);}
+.cadd{display:flex;gap:6px;margin-top:6px;}
+.cog-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.cog-card{border:1.5px solid var(--line);border-radius:var(--r);padding:8px 10px;cursor:pointer;background:var(--bg-el);transition:all .12s;}
+.cog-card:hover{border-color:var(--acc);background:var(--acc-lt);}
+.cog-card.on{border-color:var(--acc);background:var(--acc);color:#fff;}
+.cog-card.on .cog-grp,.cog-card.on .cog-desc{color:rgba(255,255,255,.8);}
+.cog-grp{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px;}
+.cog-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.cog-card.on .cog-lbl{color:#fff;}
+.cog-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+.pi{display:grid;grid-template-columns:20px 1fr 90px 1fr 26px;gap:7px;align-items:start;margin-bottom:7px;}
+.pn{width:20px;height:20px;border-radius:50%;background:var(--acc);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+.vi{background:var(--bg-el);border:1px solid var(--line);border-radius:var(--r);padding:9px;margin-bottom:7px;}
+.vh{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:12px;font-weight:600;color:var(--muted);}
+.qt{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
+.qtg{padding:3px 9px;border-radius:11px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:var(--bg-el);color:var(--muted);transition:all .1s;}
+.qtg:hover{border-color:var(--acc);color:var(--acc);}
+.qtg.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+/* Integration Toggles */
+.int-presets{display:flex;gap:8px;margin-bottom:14px;}
+.int-preset{padding:6px 14px;border-radius:var(--r);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;cursor:pointer;border:1.5px solid var(--line);background:var(--bg-el);color:var(--muted);transition:all .12s;}
+.int-preset:hover{border-color:var(--acc);}
+.int-preset.minimal{}.int-preset.optimal{border-color:var(--good);background:var(--good-bg);color:#1a4a2e;}
+.int-preset.check{border-color:#b0c8f0;background:#eef4ff;color:#1a3a7a;}
+.toggle-list{display:flex;flex-direction:column;gap:6px;}
+.tgl-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-el);border:1px solid var(--line);border-radius:var(--r);}
+.tgl-row.active{background:var(--good-bg);border-color:#8ecfaa;}
+.tgl-info{flex:1;}
+.tgl-label{font-size:13px;font-weight:600;color:var(--ink);}
+.tgl-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+.tgl-switch{position:relative;width:36px;height:20px;flex-shrink:0;}
+.tgl-switch input{opacity:0;width:0;height:0;}
+.tgl-slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:10px;transition:.2s;}
+.tgl-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+.tgl-switch input:checked+.tgl-slider{background:var(--good);}
+.tgl-switch input:checked+.tgl-slider:before{transform:translateX(16px);}
+/* Buttons */
+.btn{padding:7px 13px;border:none;border-radius:var(--r);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.4px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:4px;}
+.ba{background:var(--acc);color:#fff;}.ba:hover{background:var(--acc-dk);}
+.bd{background:var(--ink);color:#fff;}.bd:hover{background:#333;}
+.bg{background:transparent;border:1.5px solid var(--line);color:var(--muted);}.bg:hover{border-color:var(--acc);color:var(--acc);}
+.sm{padding:4px 9px;font-size:11px;}.xs{padding:3px 7px;font-size:11px;}
+/* Side */
+.side h2{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#666;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid #1e2028;display:flex;align-items:center;justify-content:space-between;}
+.jv{font-family:'DM Mono',monospace;font-size:10px;color:#9cdcfe;background:#0a0c0f;padding:9px;border-radius:var(--r);overflow-y:auto;flex:1;white-space:pre-wrap;word-break:break-all;line-height:1.6;border:1px solid #1e2028;}
+.sr2{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.sc{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;font-family:'DM Mono',monospace;}
+.sok{background:#0d2a1a;color:#5ef09a;}.swn{background:#2a1e00;color:#ffd060;}.ser{background:#2a0a0a;color:#ff7070;}
+.sact{display:flex;gap:5px;margin-top:8px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">MTV</div>
+  <h1>Modul<em>-Editor</em></h1>
+  <span class="hsub">D-Jugend · Schwarmstedt</span>
+  <div class="hact">
+    <button class="btn bg sm" onclick="resetForm()">↺ Reset</button>
+    <button class="btn ba" onclick="exportJSON()">⬇ Exportieren</button>
+  </div>
+</header>
+<div class="gbar">
+  <span class="gbar-lbl">Vollständigkeit</span>
+  <div class="gbar-track"><div class="gbar-fill" id="gp-fill" style="width:0%;background:#c8102e;"></div></div>
+  <span class="gbar-pct" id="gp-pct">0%</span>
+</div>
+<div class="layout">
+<div class="main">
+
+<!-- IMPORT -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('import')">📂 Taktikboard-Import</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-import" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-import">0%</span>
+    <span class="pill pill-r">START</span>
+    <button class="tog-btn" id="tog-import" onclick="togCard('import')">▲</button>
+  </div>
+  <div class="cb" id="cb-import">
+    <div class="hint ha" style="line-height:1.7;">
+      <strong>Schritt 1:</strong> Zeichne deine Übung im Taktik-Editor —
+      <a href="Taktikboard.html" target="_blank" style="color:var(--acc-dk);font-weight:700;text-decoration:underline;">Taktikboard.html öffnen ↗</a><br>
+      <strong>Schritt 2:</strong> Konstellation speichern → <em>ZIP teilen</em> → ZIP entpacken<br>
+      <strong>Schritt 3:</strong> Die <strong>JSON-Datei aus dem ZIP</strong> (Name = Modulname) hier ablegen. Spielfeld wird 1:1 übernommen.
+    </div>
+    <div class="dz" id="dz" onclick="document.getElementById('fi').click()"
+      ondragover="event.preventDefault();this.classList.add('over')"
+      ondragleave="this.classList.remove('over')"
+      ondrop="onDrop(event)">
+      <div style="font-size:24px;margin-bottom:4px;">📋</div>
+      <strong>JSON-Datei aus dem Taktikboard-ZIP ablegen oder klicken</strong>
+    </div>
+    <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(this)">
+    <div id="im" style="font-size:12px;margin-top:5px;"></div>
+    <div class="row c2" style="margin-top:10px;">
+      <div><label>Name</label><input type="text" id="k-name" readonly style="background:#f5f5f5;color:var(--muted)"></div>
+      <div><label>Schnitt</label><input type="text" id="k-schnitt" readonly style="background:#f5f5f5;color:var(--muted)"></div>
+    </div>
+    <div><label>Vorschau (1:1 aus Taktikboard)</label>
+      <div id="svg-wrap"><div style="padding:28px;text-align:center;color:var(--muted);font-size:12px;">↑ Zuerst konstellation.json laden</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BASIS -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('basis')">📝 Basis-Informationen</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-basis" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-basis">0%</span>
+    <span class="pill pill-r">PFLICHT</span>
+    <button class="tog-btn" id="tog-basis" onclick="togCard('basis')">▲</button>
+  </div>
+  <div class="cb" id="cb-basis">
+    <div class="row c1"><div><label>Titel <span class="req">*</span></label>
+      <input type="text" id="f-title" placeholder="z.B. Kreuzungsspiel 2:1 mit Abschluss" oninput="lu()"></div></div>
+    <div class="row c3">
+      <div><label>Bereich <span class="req">*</span></label>
+        <select id="f-area" onchange="updSubs();lu()">
+          <option value="">— wählen —</option>
+          <option value="technik">Technik</option><option value="taktik">Taktik</option>
+          <option value="aufwaermen">Aufwärmen</option><option value="kleine_spiele">Kleine Spiele</option>
+          <option value="athletik">Athletik</option><option value="uebergeordnet">Übergeordnet</option>
+          <option value="torwart">Torwart</option>
+        </select></div>
+      <div><label>Subkategorie <span class="req">*</span></label>
+        <select id="f-sub" onchange="lu()"><option value="">— erst Area —</option></select></div>
+      <div><label>Level <span class="ab">AUTO</span></label>
+        <select id="f-lv" class="av" onchange="lu()">
+          <option value="auto" selected>⚙ Auto</option>
+          <option value="1">1 — Einsteiger</option><option value="2">2 — Fortgeschritten</option><option value="3">3 — Komplex</option>
+        </select></div>
+    </div>
+    <div class="row c4">
+      <div><label>Dauer (Min) <span class="req">*</span></label>
+        <input type="number" id="f-dur" min="1" max="60" value="10" oninput="lu()"></div>
+      <div><label>Intensität <span class="ab">AUTO</span></label>
+        <select id="f-int" class="av" onchange="lu()">
+          <option value="auto" selected>⚙ Auto</option>
+          <option value="niedrig">Niedrig</option><option value="mittel">Mittel</option><option value="hoch">Hoch</option>
+        </select></div>
+      <div><label>Spieler min</label><input type="number" id="f-pmin" min="2" max="30" value="6" oninput="lu()"></div>
+      <div><label>Spieler max</label><input type="number" id="f-pmax" min="2" max="30" value="12" oninput="lu()"></div>
+    </div>
+    <div class="row c3">
+      <div><label>Spielraum</label>
+        <select id="f-court" onchange="lu()">
+          <option value="halbes_feld">Halbes Feld</option><option value="ganzfeld">Ganzes Feld</option><option value="viertel">Viertel/Frei</option>
+        </select></div>
+      <div><label>EK-Konform <span class="ab">AUTO</span></label>
+        <select id="f-ek" class="av" onchange="lu()">
+          <option value="auto" selected>⚙ Auto</option>
+          <option value="true">✓ Ja (D-Jugend)</option><option value="false">✗ Nein (C-Jugend)</option>
+        </select></div>
+      <div><label>Übergangsrel. <span class="ab">AUTO</span></label>
+        <select id="f-tr" class="av" onchange="lu()">
+          <option value="auto" selected>⚙ Auto</option>
+          <option value="low">Niedrig</option><option value="medium">Mittel</option><option value="high">Hoch</option>
+        </select></div>
+    </div>
+    <div class="row c1"><div>
+      <label>Beschreibung <span class="req">*</span> <span style="font-size:10px;color:var(--muted);font-weight:400;">(Ziel: ≥150 Zeichen)</span></label>
+      <textarea id="f-desc" rows="4" placeholder="Aufbau, Ablauf, Coaching-Punkte…" oninput="lu()"></textarea>
+      <div id="desc-ct" style="font-size:10px;color:var(--muted);margin-top:2px;">0 Zeichen</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- MATERIAL -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('mat')">🎽 Material</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-mat" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-mat">0%</span>
+    <button class="tog-btn" id="tog-mat" onclick="togCard('mat')">▲</button>
+  </div>
+  <div class="cb" id="cb-mat">
+    <div class="mat-sec"><div class="mat-sec-lbl">Bälle</div><div class="cg2" id="mat-baelle"></div></div>
+    <div class="mat-sec"><div class="mat-sec-lbl">Markierung &amp; Felder</div><div class="cg2" id="mat-mark"></div></div>
+    <div class="mat-sec"><div class="mat-sec-lbl">Geräte &amp; Hilfsmittel</div><div class="cg2" id="mat-geraete"></div></div>
+    <div class="mat-sec"><div class="mat-sec-lbl">Sonstiges</div><div class="cg2 two" id="mat-sonst"></div></div>
+    <div class="cadd">
+      <input type="text" id="mat-c" placeholder="Eigenes Material…" style="flex:1;font-size:12px;" onkeydown="if(event.key==='Enter')addMatC()">
+      <button class="btn bg sm" onclick="addMatC()">+ Hinzufügen</button>
+    </div>
+    <div class="chips" id="mat-chips" style="margin-top:7px;"></div>
+  </div>
+</div>
+
+<!-- ZIELE -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('ziele')">🎯 Lernziele</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-ziele" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-ziele">0%</span>
+    <button class="tog-btn" id="tog-ziele" onclick="togCard('ziele')">▲</button>
+  </div>
+  <div class="cb" id="cb-ziele">
+    <div class="row c2">
+      <div>
+        <label>Primärziele <span style="font-size:10px;color:var(--muted);font-weight:400;">(≥2)</span></label>
+        <div class="sb"><input type="text" id="gp-s" placeholder="Tippen oder klicken…" oninput="fGoals('p')" onfocus="fGoals('p')"><div class="sr" id="gp-r"></div></div>
+        <div class="chips" id="gp-c"></div>
+        <div class="cadd" style="margin-top:5px;"><input type="text" id="gp-c2" placeholder="Eigenes Ziel…" style="flex:1;font-size:12px;" onkeydown="if(event.key==='Enter')addGC('p')"><button class="btn bg xs" onclick="addGC('p')">+</button></div>
+      </div>
+      <div>
+        <label>Sekundärziele <span style="font-size:10px;color:var(--muted);font-weight:400;">(≥2)</span></label>
+        <div class="sb"><input type="text" id="gs-s" placeholder="Tippen oder klicken…" oninput="fGoals('s')" onfocus="fGoals('s')"><div class="sr" id="gs-r"></div></div>
+        <div class="chips" id="gs-c"></div>
+        <div class="cadd" style="margin-top:5px;"><input type="text" id="gs-c2" placeholder="Eigenes Ziel…" style="flex:1;font-size:12px;" onkeydown="if(event.key==='Enter')addGC('s')"><button class="btn bg xs" onclick="addGC('s')">+</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASEN -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('phasen')">⏱ Phasen</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-phasen" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-phasen">0%</span>
+    <span style="font-size:10px;color:#666;font-family:'DM Mono',monospace;flex-shrink:0;">Ziel:3</span>
+    <button class="tog-btn" id="tog-phasen" onclick="togCard('phasen')">▲</button>
+  </div>
+  <div class="cb" id="cb-phasen">
+    <div id="ph-wrap"></div>
+    <button class="btn bg sm" onclick="addPh()">+ Phase</button>
+  </div>
+</div>
+
+<!-- VARIATIONEN -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('var')">🔄 Variationen</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-var" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-var">0%</span>
+    <span style="font-size:10px;color:#666;font-family:'DM Mono',monospace;flex-shrink:0;">Ziel:3</span>
+    <button class="tog-btn" id="tog-var" onclick="togCard('var')">▲</button>
+  </div>
+  <div class="cb" id="cb-var">
+    <div id="vr-wrap"></div>
+    <button class="btn bg sm" onclick="addVr()">+ Variation</button>
+  </div>
+</div>
+
+<!-- TAGS -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('tags')">🏷 Tags</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-tags" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-tags">0%</span>
+    <span style="font-size:10px;color:#666;font-family:'DM Mono',monospace;flex-shrink:0;">Ziel:5</span>
+    <button class="tog-btn" id="tog-tags" onclick="togCard('tags')">▲</button>
+  </div>
+  <div class="cb" id="cb-tags">
+    <div class="tw" id="tw" onclick="document.getElementById('ti').focus()">
+      <input type="text" id="ti" placeholder="Tag, Enter bestätigt…" onkeydown="onTagKey(event)">
+    </div>
+    <label style="margin-top:9px;">Schnellauswahl</label>
+    <div class="qt" id="qtags"></div>
+  </div>
+</div>
+
+<!-- VERLINKUNGEN -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('links')">🔗 Verlinkungen</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-links" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-links">0%</span>
+    <span class="pill pill-g">306</span>
+    <button class="tog-btn" id="tog-links" onclick="togCard('links')">▲</button>
+  </div>
+  <div class="cb" id="cb-links">
+    <div class="hint hi">Klick öffnet Modulliste. Suche nach Titel oder ID.</div>
+    <div class="row c3">
+      <div><label>Prerequisites</label>
+        <div class="sb"><input type="text" id="pre-s" placeholder="Modul suchen…" oninput="fMods('pre')" onfocus="fMods('pre')"><div class="sr" id="pre-r"></div></div>
+        <div class="chips" id="pre-c"></div></div>
+      <div><label>Progressionen</label>
+        <div class="sb"><input type="text" id="prg-s" placeholder="Modul suchen…" oninput="fMods('prg')" onfocus="fMods('prg')"><div class="sr" id="prg-r"></div></div>
+        <div class="chips" id="prg-c"></div></div>
+      <div><label>Verwandte</label>
+        <div class="sb"><input type="text" id="rel-s" placeholder="Modul suchen…" oninput="fMods('rel')" onfocus="fMods('rel')"><div class="sr" id="rel-r"></div></div>
+        <div class="chips" id="rel-c"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- KOGNITIVE -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('cog')">🧠 Kognitive Anforderungen</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-cog" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-cog">0%</span>
+    <button class="tog-btn" id="tog-cog" onclick="togCard('cog')">▲</button>
+  </div>
+  <div class="cb" id="cb-cog">
+    <div class="hint hi">Wähle alle kognitiven Anforderungen die auf deine Übung zutreffen. Codes werden automatisch zugeordnet.</div>
+    <div style="margin-bottom:8px;">
+      <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-s);">
+        <input type="checkbox" id="cog-none" style="width:auto;accent-color:var(--acc);" onchange="onCogNone(this.checked)">
+        Keine besonderen kognitiven Anforderungen
+      </label>
+    </div>
+    <div class="cog-grid" id="cog-grid"></div>
+    <div class="chips" id="cog-sel" style="margin-top:4px;"></div>
+  </div>
+</div>
+
+<!-- INTEGRATIONS-ANWEISUNGEN -->
+<div class="card">
+  <div class="ch">
+    <span class="ch-title" onclick="togCard('hints')">⚙ Integrations-Anweisungen</span>
+    <div class="ch-track"><div class="ch-fill" id="prog-hints" style="width:0%"></div></div>
+    <span class="ch-pct" id="pct-hints">0%</span>
+    <span class="pill pill-b">FÜR CLAUDE</span>
+    <button class="tog-btn" id="tog-hints" onclick="togCard('hints')">▲</button>
+  </div>
+  <div class="cb" id="cb-hints">
+    <div class="hint hw">Diese Einstellungen steuern wie Claude das Modul beim Integrieren behandelt. <strong>Optimal</strong> empfohlen für beste Verzahnung im Modulbrowser.</div>
+
+    <!-- Presets -->
+    <div class="int-presets">
+      <div class="int-preset minimal" onclick="setPreset('minimal')">Minimal — nur einfügen</div>
+      <div class="int-preset optimal" onclick="setPreset('optimal')">★ Optimal — alles verzahnen</div>
+      <div class="int-preset check" onclick="setPreset('check')">Nur prüfen — keine Änderungen</div>
+    </div>
+
+    <!-- Toggles -->
+    <div class="toggle-list" id="toggle-list"></div>
+
+    <!-- Freitext -->
+    <div style="margin-top:12px;">
+      <label>Zusätzliche Hinweise <span style="font-size:10px;font-weight:400;text-transform:none;">(optional)</span></label>
+      <textarea id="f-hints" rows="3" placeholder="z.B. ‚Eher für erfahrene D-Jugend kurz vor dem Übergang. Level 3, ek_konform false.'" oninput="lu()"></textarea>
+    </div>
+  </div>
+</div>
+
+</div><!-- main -->
+
+<div class="side">
+  <h2>JSON-Vorschau <span style="font-size:10px;color:#555;font-weight:400;">live</span></h2>
+  <div class="sr2" id="sr2"></div>
+  <div class="jv" id="jv">{}</div>
+  <div class="sact">
+    <button class="btn ba" style="flex:1;" onclick="exportJSON()">⬇ Exportieren</button>
+    <button class="btn bd sm" onclick="copyJSON()" title="Kopieren">📋</button>
+  </div>
+  <div style="margin-top:8px;font-size:10px;color:#444;line-height:1.5;">Export-JSON hier hochladen → Claude integriert.</div>
+</div>
+</div><!-- layout -->
+
+<script>
+const ML=[{"id": "TE-A-PASS-001", "title": "Sternpass mit Richtungswechsel"}, {"id": "TE-A-PASS-002", "title": "Wand-Pass mit Reaktion"}, {"id": "TE-A-PASS-003", "title": "Pass im Lauf — parallel und gegenläufig"}, {"id": "TE-A-PASS-004", "title": "Pass mit Druck — 3 gegen 1 'Bienenkorb'"}, {"id": "TE-A-PASS-005", "title": "Sprungpass und Bodenpass — Variationsschulung"}, {"id": "TE-A-WURF-001", "title": "Schlagwurf-Grobform an die Wand"}, {"id": "TE-A-WURF-002", "title": "Sprungwurf-Anlaufschulung mit 3-Schritt-Rhythmus"}, {"id": "TE-A-WURF-003", "title": "Aufsetzerball — Wurf mit Aufprallpunkt"}, {"id": "TE-A-WURF-004", "title": "Wurf nach Pass im Lauf"}, {"id": "TE-A-WURF-005", "title": "Wurfvariation — verschiedene Wurfarten mit Vorgabe"}, {"id": "TE-A-PRELL-001", "title": "Prell-Parcours mit Hütchen-Slalom"}, {"id": "TE-A-PRELL-002", "title": "Prellen im Achterlauf"}, {"id": "TE-A-PRELL-003", "title": "Prellen mit Doppelaufgabe (kognitive Last)"}, {"id": "TE-A-PRELL-004", "title": "Prellen gegen aktiven Gegner"}, {"id": "TE-A-STOSS-001", "title": "Stoßbewegung am Hütchen"}, {"id": "TE-A-STOSS-002", "title": "Anbieten und Stoßen — 2:0 mit Pass-Wurf"}, {"id": "TE-A-STOSS-003", "title": "Stoßen mit Doppelpass (Give-and-Go)"}, {"id": "TE-A-STOSS-004", "title": "Stoßspiel — Tempovariation auf Signal"}, {"id": "TE-A-TAUSCH-001", "title": "Körpertäuschung am Hütchen"}, {"id": "TE-A-TAUSCH-002", "title": "Wurftäuschung am Mattenkasten"}, {"id": "TE-A-TAUSCH-003", "title": "Doppeltäuschung mit Rhythmus"}, {"id": "TE-D-STELL-001", "title": "Abwehr-Grundstellung statisch halten"}, {"id": "TE-D-STELL-002", "title": "Stoßschritt und Nachstellschritt — Beinarbeits-Parcours"}, {"id": "TE-D-STELL-003", "title": "Spiegellauf in Abwehrstellung"}, {"id": "TE-D-BLOCK-001", "title": "Block-Grundform am Standwurf"}, {"id": "TE-D-BLOCK-002", "title": "Springender Block"}, {"id": "TE-D-BLOCK-003", "title": "Wurfabwehr mit Körpereinsatz"}, {"id": "TE-D-1V1-001", "title": "1-gegen-1 statisch — Abwehrgrundstellung halten"}, {"id": "TE-D-1V1-002", "title": "1:1 mit Pass-Anschluss"}, {"id": "TE-D-1V1-003", "title": "1:1 im Korridor mit Tempo-Variation"}, {"id": "TE-X-BEID-001", "title": "Beidhändiges Pass-Spiel im Kreis"}, {"id": "TE-X-BEID-002", "title": "Schwache-Hand-Tag — alle Aktionen mit schwacher Seite"}, {"id": "TE-X-BEID-003", "title": "Wechsel-Hand-Prellen mit Pass-Reaktion"}, {"id": "AW-AKT-001", "title": "Lauf-ABC im Hütchenparcours"}, {"id": "AW-AKT-002", "title": "Karaoke-Schritt und seitliche Sprünge"}, {"id": "AW-AKT-003", "title": "Reaktions-Fangspiel im Quadrat"}, {"id": "AW-BALL-001", "title": "Aufwärmen mit Ball — Paare im Lauf"}, {"id": "AW-BALL-002", "title": "Ball-Jonglage und Koordinationsformen"}, {"id": "AW-BALL-003", "title": "Hot-Potato-Pass-Spiel im Kreis"}, {"id": "AW-MOB-001", "title": "Dynamische Mobilisation — Bewegungsprep"}, {"id": "AW-MOB-002", "title": "World's Greatest Stretch in Bewegung"}, {"id": "AW-MOB-003", "title": "Wurfschulter-Aktivierung"}, {"id": "AW-MENT-001", "title": "Konzentrations-Aufmerksamkeitsspiel — Trainer-Signal"}, {"id": "AW-MENT-002", "title": "Mannschafts-Rätsel als Einstieg"}, {"id": "AW-MENT-003", "title": "Atem- und Fokus-Übung (2-Minuten-Reset)"}, {"id": "AW-PRAEV-001", "title": "Beinachsen-Stabilisation — VBG-Klassiker"}, {"id": "AW-PRAEV-002", "title": "Rumpfstabilisation — Plank-Varianten"}, {"id": "AW-PRAEV-003", "title": "Schulter-Aktivierung mit Theraband"}, {"id": "AW-COOL-001", "title": "Lockeres Auslaufen mit Mobilisation"}, {"id": "AW-COOL-002", "title": "Mannschafts-Reflexion im Kreis"}, {"id": "AW-COOL-003", "title": "Faszien-Selbstmassage mit Ball oder Roller"}, {"id": "US-2V2-001", "title": "2:2 am Kreis — Stoßen oder Kreuzen"}, {"id": "US-2V2-002", "title": "2:2 mit Pflicht-Kreuzen vor dem Wurf"}, {"id": "US-2V2-003", "title": "2:2 Schnellangriff aus dem Lauf"}, {"id": "US-3V3-001", "title": "3:3 am Kreis — freie Lösung"}, {"id": "US-3V3-002", "title": "3:3 mit Tempo-Übergang"}, {"id": "US-3V3-003", "title": "3:3 mit Außenüberzahl"}, {"id": "US-4V4-001", "title": "4:4 Grundform am Halbfeld"}, {"id": "US-4V4-002", "title": "4:4 mit Wechseltor"}, {"id": "US-4V4-003", "title": "4:4 mit Coaching-Pause"}, {"id": "US-MINI-001", "title": "Mini-Handball 3:3 auf kleinem Tor"}, {"id": "US-MINI-002", "title": "Strafraum-Spiel — Sektoren"}, {"id": "US-MINI-003", "title": "Mini-Handball Turnier-Modus"}, {"id": "US-REGEL-001", "title": "Spiel mit Pflicht-Sprungwurf"}, {"id": "US-REGEL-002", "title": "Spiel mit beidseitiger Pflicht-Wurfaktion"}, {"id": "US-REGEL-003", "title": "Spiel ohne Prellen"}, {"id": "US-AUFGAB-001", "title": "Aufgaben-Spiel — Trainer-Karten"}, {"id": "US-AUFGAB-002", "title": "Aufgaben-Spiel — Individuelle Pflichten"}, {"id": "US-AUFGAB-003", "title": "Aufgaben-Spiel — Pflicht-Aktionen für Tore"}, {"id": "AT-KOOR-001", "title": "Koordinations-Leiter-Parcours"}, {"id": "AT-KOOR-002", "title": "Hütchen-Slalom mit Aktionen"}, {"id": "AT-KOOR-003", "title": "Koordination unter Druck — Doppelaufgabe"}, {"id": "AT-SCHN-001", "title": "Sprint-Stafetten mit Wenden"}, {"id": "AT-SCHN-002", "title": "Reaktions-Sprints aus verschiedenen Positionen"}, {"id": "AT-SCHN-003", "title": "Schnelligkeitsausdauer-Zirkel"}, {"id": "AT-SPRG-001", "title": "Beidbeinige Sprünge — Grundformen"}, {"id": "AT-SPRG-002", "title": "Einbeinige Sprünge mit Stabilisation"}, {"id": "AT-SPRG-003", "title": "Sprungkraft-Parcours mit Aktionen"}, {"id": "AT-STAB-001", "title": "Rumpfstabilisation — Plank-Programm"}, {"id": "AT-STAB-002", "title": "Stabilisations-Zirkel — Beinachse + Rumpf"}, {"id": "AT-STAB-003", "title": "Propriozeption — Einbein-Übungen"}, {"id": "AT-KRAFT-001", "title": "Kraft mit Eigengewicht — Grundübungen"}, {"id": "AT-KRAFT-002", "title": "Paar-Übungen mit Partner-Widerstand"}, {"id": "AT-KRAFT-003", "title": "Medizinball-Übungen für Wurfkraft"}, {"id": "AT-AUS-001", "title": "Spielform mit Ausdauer-Charakter"}, {"id": "AT-AUS-002", "title": "Intervall-Lauftraining"}, {"id": "AT-AUS-003", "title": "Konditionelles Spielform-Training"}, {"id": "TA-A-STOSS-001", "title": "Stoßen als Gruppenaktion — 2:2 mit Pass-Geber"}, {"id": "TA-A-STOSS-002", "title": "3-Mann-Stoßen — Block bilden"}, {"id": "TA-A-STOSS-003", "title": "Stoßen im Tempo nach Pass von Außen"}, {"id": "TA-A-KREUZ-001", "title": "Kreuzbewegung — Grundform 2:2"}, {"id": "TA-A-KREUZ-002", "title": "Kreuzen mit Wurf nach Kreuz"}, {"id": "TA-A-KREUZ-003", "title": "Doppelkreuzen — komplexere Bewegungsform"}, {"id": "TA-A-1V1-001", "title": "1:1 mit Pass-Empfang — Grundform"}, {"id": "TA-A-1V1-002", "title": "1:1 mit Tempo-Variation"}, {"id": "TA-A-1V1-003", "title": "1:1 mit Wurfvariation"}, {"id": "TA-A-AUS-001", "title": "Außenspieler einbinden — Pass von außen"}, {"id": "TA-A-AUS-002", "title": "Außenspieler-Wurf aus dem Tempo"}, {"id": "TA-A-AUS-003", "title": "Pass-Spiel zwischen beiden Außenpositionen"}, {"id": "TA-A-FREI-001", "title": "Freiraum schaffen durch Stoßbewegung"}, {"id": "TA-A-FREI-002", "title": "Anbieten und Freilaufen"}, {"id": "TA-A-FREI-003", "title": "Räume erkennen — Spielform mit Wertung"}, {"id": "TA-D-MAN-001", "title": "Manndeckung — Grundform"}, {"id": "TA-D-MAN-002", "title": "Manndeckung mit Übergeben/Übernehmen"}, {"id": "TA-D-MAN-003", "title": "Manndeckung mit Tempo-Spiel"}, {"id": "TA-D-OFF-001", "title": "Offensive Abwehr 3:2:1 — Vorzeigen"}, {"id": "TA-D-OFF-002", "title": "3:2:1-Abwehr mit Spitze-Aktion"}, {"id": "TA-D-OFF-003", "title": "3:2:1 im vollen Spiel"}, {"id": "TA-X-TEMP-001", "title": "Schnellangriff 2:1 nach Ball-Gewinn"}, {"id": "TA-X-TEMP-002", "title": "Schnellangriff 3:2 mit Pass-Spiel"}, {"id": "TA-X-TEMP-003", "title": "Wechseltor-Spiel mit Tempo-Pflicht"}, {"id": "KS-FANG-001", "title": "Schwarzer Mann — Klassisches Fangspiel"}, {"id": "KS-FANG-002", "title": "Kettenfang — Fänger werden zur Kette"}, {"id": "KS-FANG-003", "title": "Befreiungs-Fangspiel"}, {"id": "KS-BALL-001", "title": "Mattenball — Ball auf die Matte werfen"}, {"id": "KS-BALL-002", "title": "Laufende Uhr — Spiel mit Pässen im Kreis"}, {"id": "KS-BALL-003", "title": "Brennball-Handball"}, {"id": "KS-WETT-001", "title": "Wettkampf-Stafetten"}, {"id": "KS-WETT-002", "title": "Hütchen-Klau-Wettkampf"}, {"id": "KS-WETT-003", "title": "Tor-Wurf-Wettkampf"}, {"id": "KS-KOOP-001", "title": "Kooperatives Pass-Spiel im Quadrat"}, {"id": "KS-KOOP-002", "title": "Mannschafts-Knoten — Bewegungs-Rätsel"}, {"id": "KS-KOOP-003", "title": "Vertrauens-Spiel — Blind führen"}, {"id": "KS-FUN-001", "title": "Reaktions-Spiel mit Trainer-Karten"}, {"id": "KS-FUN-002", "title": "Lustige Würfel — Bewegungs-Würfel"}, {"id": "KS-FUN-003", "title": "Schneeball-Schlacht mit Bällen"}, {"id": "TW-STELL-001", "title": "Torwart-Grundstellung"}, {"id": "TW-STELL-002", "title": "Stellungsspiel im Tor"}, {"id": "TW-STELL-003", "title": "Stellung gegen Sprungwerfer"}, {"id": "TW-ABW-001", "title": "Wurfabwehr — Grundtechniken"}, {"id": "TW-ABW-002", "title": "Wurfabwehr aus verschiedenen Wurfarten"}, {"id": "TW-ABW-003", "title": "Wurfabwehr mit Block-Unterstützung"}, {"id": "TW-REAK-001", "title": "Reaktions-Training mit Bällen"}, {"id": "TW-REAK-002", "title": "Reaktion mit Doppelaufgabe"}, {"id": "TW-REAK-003", "title": "Antizipation aus Wurf-Anlauf"}, {"id": "TW-AUF-001", "title": "Abwurf-Grundtechnik"}, {"id": "TW-AUF-002", "title": "Schnellangriff einleiten"}, {"id": "TW-AUF-003", "title": "Spielaufbau mit Pass-Optionen"}, {"id": "TW-ATHL-001", "title": "TW-Athletik — Stellung und Sprung"}, {"id": "TW-ATHL-002", "title": "TW-Athletik — Sprung in alle Ecken"}, {"id": "TW-ATHL-003", "title": "TW-Athletik — Stabilisation und Rumpf"}, {"id": "TA-X-TEMP-004", "title": "Kontra-Duell 1:1 aus Startposition"}, {"id": "TA-X-TEMP-005", "title": "2:1 ohne Drible — reines Pass-Spiel"}, {"id": "TA-X-TEMP-006", "title": "3:2 in die Seite mit Rückkontra 3:2"}, {"id": "TA-X-TEMP-007", "title": "3:3 mit Übergangs-Kontra (4:3)"}, {"id": "TA-X-TEMP-008", "title": "3:4 — Unmögliche Aufgaben mit Keeper-Anwurf"}, {"id": "TA-X-TEMP-009", "title": "Doppel-Kontra mit 3-Pässe-Pflicht"}, {"id": "TA-X-TEMP-010", "title": "Diagonal-Kontra-Duell — wer scoort zuerst?"}, {"id": "AW-BALL-004", "title": "Ballklau im Dribbel-Wirrwarr"}, {"id": "AW-AKT-004", "title": "Zwei-Hand-Touch — Pass-Spiel unter Druck"}, {"id": "TE-A-PRELL-005", "title": "Dribbel-Spiegel — Partner kopieren mit Ball"}, {"id": "KS-FANG-004", "title": "Wölfe und Dribbler — Eingefroren-Variante"}, {"id": "TE-A-PASS-006", "title": "Wandball-Pässe (Pelote basque)"}, {"id": "TE-A-WURF-006", "title": "Wurf-Wettkampf mit Punkte-Zonen"}, {"id": "TE-A-WURF-007", "title": "Außenwurf — Tir excentré mit Sprung"}, {"id": "TA-A-1V1-004", "title": "Fixieren oder Werfen — Entscheidung mit Verteidiger"}, {"id": "KS-FUN-004", "title": "Logik des Handballs — Heranführung in 3 Schritten"}, {"id": "US-MINI-004", "title": "Mini-Match mit Hütchen-Toren ohne Lauf mit Ball"}, {"id": "TA-X-TEMP-011", "title": "Statut — Rollen erkennen aus dem Lauf"}, {"id": "US-REGEL-004", "title": "Spiel mit dauerhaftem Joker im Angriff"}, {"id": "US-REGEL-005", "title": "Spiel ohne Rückpass — Kein Direktpass zurück"}, {"id": "US-REGEL-006", "title": "Zentraler Relais-Joker — Bonus für Pass durch die Mitte"}, {"id": "TA-A-1V1-005", "title": "Ball durchbringen — 2 Korridore mit Verteidiger"}, {"id": "TA-A-FREI-004", "title": "Spiel lesen — 3:1 im Korridor"}, {"id": "TA-X-TEMP-012", "title": "Gagne-terrain — 2:2 mit Verteidiger-Plot-Umlauf"}, {"id": "TA-A-FREI-005", "title": "Tigerball 2:1 im Quadrat — Anbieten unter Druck"}, {"id": "TE-D-1V1-004", "title": "Verteidiger-Punkte-System — 4×4 mit 1:2 Touch"}, {"id": "KS-BALL-004", "title": "Verfluchter Ball — 4 Bälle, 3 Wölfe"}, {"id": "TA-A-FREI-006", "title": "Pentagonal-Form mit 3 Quellen — Empfangen und Weitergeben"}, {"id": "TA-A-STOSS-005", "title": "Lücken-Wurf — Verteidiger wählt Seite, Werfer zur anderen"}, {"id": "TE-D-STELL-005", "title": "Bereitschaftsstellung — die Grundposition"}, {"id": "TE-D-STELL-004", "title": "Verschieben in alle Richtungen — Forflytning"}, {"id": "TE-D-1V1-005", "title": "Snappen — Pass-Abfangen aus der Bereitschaft"}, {"id": "TE-D-BLOCK-004", "title": "Blockieren — Wurf abwehren aus der Position"}, {"id": "TA-D-MAN-008", "title": "Räume zumachen — Stenge gegen Durchbruch"}, {"id": "TA-D-MAN-009", "title": "Absichern — Sikre im Nachbar-Sektor"}, {"id": "TA-D-MAN-010", "title": "Finten als Verteidiger — Angreifer täuschen"}, {"id": "TA-D-OFF-004", "title": "Pressen — aktive Störung des Angreifers"}, {"id": "TE-D-1V1-006", "title": "Tackling — kontrollierter Körperkontakt"}, {"id": "TA-D-MAN-004", "title": "Helfen — eingreifen wenn Mitspieler überlaufen wird"}, {"id": "TE-D-1V1-007", "title": "Duell 1:1 — den Lauf des Angreifers lenken"}, {"id": "TE-D-1V1-008", "title": "Kreisspieler-Verteidigung — vor oder hinter dem Gegner"}, {"id": "TA-D-MAN-005", "title": "Zwei-und-Zwei — Verteidiger-Tandem"}, {"id": "TA-D-MAN-006", "title": "360°-Wahrnehmung im Abwehrspiel"}, {"id": "AT-STAB-005", "title": "Rumpf-Stabilität für Verteidiger"}, {"id": "AT-KOOR-004", "title": "Koordinative Verschiebungs-Schule"}, {"id": "TA-D-MAN-007", "title": "3:3 freies Spiel — Like mange"}, {"id": "TA-D-OFF-005", "title": "Unterzahl 2:3 — gegen Überzahl verteidigen"}, {"id": "TE-A-PASS-007", "title": "Smørklat 4:2 — Pass-Spiel unter Druck"}, {"id": "TE-A-PASS-008", "title": "Smørklat 5:3 — Pass-Spiel mit drei Verteidigern"}, {"id": "TE-A-PASS-009", "title": "Pass unter Tackler-Druck — Back zu Kreisspieler"}, {"id": "TE-A-PASS-010", "title": "Harte Back-Back-Pässe in Bewegung"}, {"id": "TE-A-PASS-011", "title": "Pass und schnell zurück — 2:2 frontal"}, {"id": "TE-A-PASS-012", "title": "Pass und 360°-Drehung — Vorwärts zurück"}, {"id": "TE-A-PASS-013", "title": "Drei mit zwei Bällen — Pass mit Puls"}, {"id": "TE-A-PASS-014", "title": "Mittelmann hetzt — Bodenball fangen vor Aufschlag"}, {"id": "TE-A-PASS-015", "title": "Drei mit zwei Bällen — mit Tackeln"}, {"id": "TE-A-PASS-016", "title": "Stempel-Pass — kurzer harter Pass aus der Brust"}, {"id": "TE-A-PASS-017", "title": "Einhand-Pass-Variationen — Technik-Vielfalt"}, {"id": "TE-A-PASS-018", "title": "Bodenpass-Variationen — verschiedene Aufschlagpunkte"}, {"id": "AW-BALL-005", "title": "Pass-Tempo-Variation — 4-6 Durchgänge à 30 Sek"}, {"id": "AW-BALL-006", "title": "Balance-Pass — Zeh und Hacke"}, {"id": "AW-BALL-007", "title": "Pass im Sitzen — Rumpf-Stabilität schulen"}, {"id": "AW-BALL-008", "title": "Wettkampf — 15 Pässe als Erster"}, {"id": "AW-BALL-009", "title": "Lange Pässe mit gegenseitiger Störung"}, {"id": "TE-A-PASS-019", "title": "4er-Pass-Form mit Seiten-Cross"}, {"id": "AW-AKT-005", "title": "Aufwärm-Quadrat — 4 Stationen rundum"}, {"id": "AW-AKT-006", "title": "Seitlich Fangen — Sidelæns tagfat"}, {"id": "AW-AKT-007", "title": "Rückwärts-Fangen — Baglæns tagfat"}, {"id": "AW-AKT-008", "title": "Gehendes Fangen — Gå tagfat"}, {"id": "AW-MOB-004", "title": "Fußgelenk-Mobilisation — Innen-, Außen-, schiefe Füße"}, {"id": "AW-MOB-005", "title": "Lauf-Varianten — Knie hoch, Hacke, seitlich, Karate-Kick"}, {"id": "AW-MOB-006", "title": "Wurfschulter-Aktivierung mit Partner"}, {"id": "AW-MOB-007", "title": "HB-Agility — Sprung-Variationen mit Knie-Hoch"}, {"id": "AW-PRAEV-004", "title": "Knie-Stabilität — saubere Sprung-Landung"}, {"id": "AW-PRAEV-005", "title": "Plyometrie-Einstieg — kurze Bodenkontakte"}, {"id": "AW-PRAEV-006", "title": "Schulter-Stabilisation — Wand-Liegestütz"}, {"id": "AW-BALL-010", "title": "Slalom-Dribbel-Stafette — Reihe durchlaufen"}, {"id": "AW-BALL-011", "title": "Ball-Pass-Stafette — Reihen-Pass-Spiel"}, {"id": "AW-MENT-004", "title": "Pfiff-Aktion — Markierung auf Trainer-Signal"}, {"id": "AW-MENT-005", "title": "3er-Spiel — Beschützer, Fänger, Verfolgte"}, {"id": "AW-COOL-004", "title": "Aktive Erholung — lockeres Pass-Spiel im Kreis"}, {"id": "US-MINI-005", "title": "Halbfeldspiel — zwei Mannschaften pro Seite"}, {"id": "US-MINI-006", "title": "Auswechslungsspiel — fliegender Wechsel"}, {"id": "US-MINI-007", "title": "Duelspil auf ¾-Feld"}, {"id": "US-MINI-008", "title": "Intervallspiel — vier Mannschaften rotieren"}, {"id": "KS-WETT-004", "title": "Flest mål auf 1 Minute — Doppeltor-Wettkampf"}, {"id": "KS-WETT-005", "title": "2 vs 1 Wettkampf — erst zu 7 Toren"}, {"id": "US-REGEL-007", "title": "Erzwungene Manndeckung im Spiel"}, {"id": "US-REGEL-008", "title": "Spiel mit Zonenabwehr-Pflicht"}, {"id": "US-REGEL-009", "title": "Doppelpass-Verbot — Anbieten als Pflicht"}, {"id": "US-AUFGAB-004", "title": "Schwachhand-Pflicht beim Abschluss"}, {"id": "TA-X-TEMP-013", "title": "3 vs 2 Übergang mit Pflicht-Pässen"}, {"id": "AT-STAB-006", "title": "Plank-Grundform — verschiedene Stützpositionen"}, {"id": "AT-STAB-007", "title": "Side-Plank mit Hüftheben"}, {"id": "AT-STAB-008", "title": "V-Sit Hold und Hohlkörper-Übung"}, {"id": "AT-STAB-009", "title": "Glute Bridge — Hüftheben beidbeinig und einbeinig"}, {"id": "AT-STAB-010", "title": "Plank-Up-Down (Albue zu Hand)"}, {"id": "AT-STAB-011", "title": "Partner-Bauch-Übungen — Beine festhalten und Wurf"}, {"id": "AT-KOOR-005", "title": "Cross-Crawl — Diagonale Arm-Bein-Koordination"}, {"id": "AT-KOOR-006", "title": "Crawl-Imitation in Bauchlage — asynchrone Arm-Bein-Bewegung"}, {"id": "AT-SCHN-004", "title": "Linien-Steppen vor und seitlich — Bewegungs-Rhythmus"}, {"id": "AT-SCHN-005", "title": "Hütchen-Slalom Zig-Zag (7-8 Hütchen)"}, {"id": "AT-SCHN-006", "title": "5-10m Sprint mit wechselnden Startpositionen"}, {"id": "AT-SCHN-007", "title": "Reaktions-Schnelligkeit auf Trainer-Signal"}, {"id": "AT-SPRG-004", "title": "Stab- und Linien-Sprünge — geschlossene Beine"}, {"id": "AT-SPRG-005", "title": "Quadrat-Sprünge mit Sprint-Anschluss"}, {"id": "AT-SPRG-006", "title": "Aktive Speed — 2m vor/zurück mit 1:1-Stellungsspiel"}, {"id": "AW-AKT-009", "title": "Fangen mit Seitenbewegungen"}, {"id": "AW-AKT-010", "title": "Stafetten-Familie — Lauf, Dribbel, Drehung (3 Varianten)"}, {"id": "TE-A-WURF-008", "title": "Antonius — Wurf-Grundtechnik mit hoher Armhaltung"}, {"id": "TE-A-PRELL-006", "title": "Ball schützen gegen Verteidiger"}, {"id": "TE-A-STOSS-005", "title": "Finte mit parallelen Füßen — Grundform"}, {"id": "TE-A-STOSS-006", "title": "Finte nach Sprung-Landung (Box-Drop + Finte)"}, {"id": "TE-A-STOSS-007", "title": "Pass-Annahme mit Seitenwechsel"}, {"id": "TE-A-STOSS-008", "title": "Finte ohne Ball mit anschließender Ball-Aufnahme"}, {"id": "KS-FUN-005", "title": "Hütchen verteidigen — Rollenwechsel"}, {"id": "TA-A-FREI-007", "title": "Trauben-Spiel 3 vs 2 + Druck-Bewegungen"}, {"id": "TE-A-PASS-021", "title": "Peitschenwurf-Grundform (Stand)"}, {"id": "TE-A-PASS-022", "title": "Peitschenwurf mit Anlauf beidseits"}, {"id": "TE-A-PASS-023", "title": "Peitschenwurf aus der Luft"}, {"id": "TE-A-PASS-024", "title": "Pass im Kreuzungsspiel (Grundform)"}, {"id": "TE-A-PASS-025", "title": "Pass über die Zone / Stopppass"}, {"id": "TE-A-PASS-026", "title": "Pass in Gegenrichtung der eigenen Bewegung"}, {"id": "TE-A-PASS-027", "title": "Timing: Pass zum richtigen Moment"}, {"id": "TE-A-STOSS-009", "title": "Positionskorrektur ohne Ball"}, {"id": "TE-A-STOSS-010", "title": "Finte: Grundform beidseits"}, {"id": "TE-A-STOSS-011", "title": "Finte mit Körperkontakt"}, {"id": "TE-A-STOSS-012", "title": "Rhythmuswechsel im Pädrag"}, {"id": "TE-A-TAUSCH-001", "title": "Kreuzungsspiel: Ball mit Nahhand übergeben"}, {"id": "TE-A-TAUSCH-002", "title": "Kreuzungsspiel mit aktivem Abwehrspieler"}, {"id": "TE-A-WURF-009", "title": "Abschluss nach Pädrag (Rückraum)"}, {"id": "TE-A-WURF-010", "title": "Abschluss Außen: Anlauf und Absprung"}, {"id": "TE-A-WURF-011", "title": "Abschluss 2:1 mit Entscheidung"}, {"id": "TE-A-WURF-012", "title": "Abschluss nach Kreuzung mit Abwehr"}, {"id": "TE-A-PASS-028", "title": "Lange Pässe in den diagonalen Lauf"}, {"id": "TE-A-PASS-029", "title": "Ballannahme – Drehung – 2. Gegenstoßpass"}, {"id": "TE-A-PASS-030", "title": "Diagonalpässe in den Lauf – Wurftraining"}, {"id": "TE-A-PASS-031", "title": "Kurzpässe – Gegenstoß – 2:1"}, {"id": "TE-A-PASS-032", "title": "Langpässe – Spiel 2:1 / 3:2 zurück"}, {"id": "TE-A-PASS-033", "title": "Gegenstoßpass – Abstoppen – 2. Gegenstoßpass"}, {"id": "TE-A-PASS-034", "title": "Langpässe und Diagonalpässe im Kontinuum"}, {"id": "TE-A-PASS-035", "title": "Diagonalläufe und -pässe im Kontinuum"}, {"id": "KS-WETT-010", "title": "Mattenball Grundform"}, {"id": "KS-WETT-011", "title": "Mattenball mit Regelsteigerungen"}, {"id": "KS-WETT-012", "title": "Mattenball mit schnellem Umschalten"}, {"id": "KS-WETT-013", "title": "Mattenball mit drei Zielen"}, {"id": "KS-WETT-014", "title": "Mattenball als Reaktionsspiel"}, {"id": "KS-WETT-015", "title": "Überschlagspiel mit Athletikaufgaben"}, {"id": "KS-WETT-016", "title": "Überschlagspiel mit Spielrichtungswechsel"}, {"id": "KS-WETT-017", "title": "Überschlagspiel mit Gegenstoß-Einleitung"}, {"id": "KS-WETT-018", "title": "Überschlagspiel unrhythmisch (4:3)"}, {"id": "KS-WETT-019", "title": "Überschlagspiel mit schnellem Anwurf"}, {"id": "KS-WETT-020", "title": "Laufende Uhr – Gegenstoß-Gruppe"}, {"id": "AW-AKT-011", "title": "Laufende Uhr – Hockwende und Rolle"}, {"id": "AW-AKT-012", "title": "Laufende Uhr – Medizinball-Staffel"}, {"id": "KS-WETT-021", "title": "Laufende Uhr – Kastensprünge mit Kreisspieler"}, {"id": "KS-WETT-022", "title": "Laufende Uhr – Sprint-Parcours mit Hechtrolle"}, {"id": "KS-WETT-023", "title": "Laufende Uhr – Reifenbahn + Kastenbahn mit Abwehr"}, {"id": "US-MINI-009", "title": "Aufsetzerball 2:2"}, {"id": "US-MINI-010", "title": "Aufsetzerball 3:3"}, {"id": "US-MINI-011", "title": "Aufsetzerball 3:3 mit Verteidiger im gegnerischen Feld"}, {"id": "US-MINI-012", "title": "Aufsetzerball 2:2 mit Rollenwechsel"}, {"id": "US-MINI-013", "title": "Aufsetzerball 3:3 mit Störer im gegnerischen Feld"}, {"id": "US-MINI-014", "title": "Aufsetzerball 4:4 mit Rollenwechsel"}, {"id": "US-MINI-015", "title": "Aufsetzerball 4:4 mit Störern im gegnerischen Feld"}];
+const COG_CONCEPTS=[{"id": "auf_basis", "label": "Aufmerksamkeit: Grundform", "group": "Aufmerksamkeit", "desc": "Fokus auf eine Aufgabe — Signal erkennen, Blick vom Ball lösen", "codes": ["COG-AUF-01"]}, {"id": "auf_geteilt", "label": "Aufmerksamkeit: Geteilt", "group": "Aufmerksamkeit", "desc": "Ball und Umgebung gleichzeitig — z.B. Prellen ohne Blickkontakt", "codes": ["COG-AUF-02", "COG-AUF-04"]}, {"id": "auf_mehrere", "label": "Aufmerksamkeit: Mehrere Quellen", "group": "Aufmerksamkeit", "desc": "Mehrere Bälle/Mitspieler gleichzeitig im Blick — hohe kognitive Last", "codes": ["COG-AUF-001", "COG-AUF-002", "COG-AUF-03"]}, {"id": "anti_basis", "label": "Antizipation: Mitspieler lesen", "group": "Antizipation", "desc": "Laufweg vorhersehen, Pass-Timing antizipieren", "codes": ["COG-ANTI-01", "COG-ANTI-02"]}, {"id": "anti_gegner", "label": "Antizipation: Gegner lesen", "group": "Antizipation", "desc": "Verteidiger-/Angreifer-Aktion frühzeitig erkennen und reagieren", "codes": ["COG-ANTI-001", "COG-ANTI-03"]}, {"id": "ents_einfach", "label": "Entscheidung: Zwei Optionen", "group": "Entscheidung", "desc": "Zwischen zwei Möglichkeiten wählen — Pass oder Wurf, links oder rechts", "codes": ["COG-ENTS-01", "COG-ENTS-02"]}, {"id": "ents_komplex", "label": "Entscheidung: Unter Druck", "group": "Entscheidung", "desc": "Mehrere Optionen, schnelle Wahl unter Zeitdruck oder Gegnerdruck", "codes": ["COG-ENTS-001", "COG-ENTS-002", "COG-ENTS-03"]}, {"id": "reak_signal", "label": "Reaktion: Auf Signal", "group": "Reaktion", "desc": "Schnelle Reaktion auf Pfiff, Farbe oder visuelles Zeichen", "codes": ["COG-REAK-01", "COG-REAK-001"]}, {"id": "reak_spiel", "label": "Reaktion: Im Spielfluss", "group": "Reaktion", "desc": "Auf Spielsituation reagieren — Gegenstoß, Umschalten, Übergänge", "codes": ["COG-REAK-02", "COG-REAK-03"]}, {"id": "wahr_raum", "label": "Wahrnehmung: Räume sehen", "group": "Wahrnehmung", "desc": "Freie Räume, Lücken in der Abwehr und Laufwege erkennen", "codes": ["COG-WAHR-01", "COG-WAHR-02", "COG-WAHR-001"]}, {"id": "wahr_periph", "label": "Wahrnehmung: Peripher / Überblick", "group": "Wahrnehmung", "desc": "Peripheres Sehen — Mitspieler + Gegner gleichzeitig, Überzahl erkennen", "codes": ["COG-WAHR-002", "COG-WAHR-04"]}, {"id": "inh_impuls", "label": "Inhibition: Impuls unterdrücken", "group": "Inhibition", "desc": "Einen Reflex unterdrücken — nicht sofort prellen, Täuschung nicht ausführen", "codes": ["COG-INH-01", "COG-INH-001"]}, {"id": "inh_regel", "label": "Inhibition: Regeleinhalten", "group": "Inhibition", "desc": "Einschränkung trotz Druck einhalten — schwache Hand, Wurfpflicht", "codes": ["COG-INH-02", "COG-INH-03", "COG-INH-04"]}, {"id": "flex_rolle", "label": "Flexibilität: Rollenwechsel", "group": "Flexibilität", "desc": "Schnell umschalten — Angreifer wird Verteidiger, neue Regeln akzeptieren", "codes": ["COG-FLEX-001"]}, {"id": "flex_var", "label": "Flexibilität: Variante wählen", "group": "Flexibilität", "desc": "Situativ die richtige Technik wählen — Wurfart, Passtyp, Laufweg", "codes": ["COG-FLEX-03"]}, {"id": "krea_tech", "label": "Kreativität: Technische Vielfalt", "group": "Kreativität", "desc": "Ungewöhnliche Pässe, Täuschungen und Wurfvarianten ausprobieren", "codes": ["COG-KREA-01", "COG-KREA-001"]}, {"id": "krea_takt", "label": "Kreativität: Taktische Improvisation", "group": "Kreativität", "desc": "Eigene Spiellösungen entwickeln — auch wenn die einfache Option fehlt", "codes": ["COG-KREA-04"]}, {"id": "arb_seq", "label": "Arbeitsgedächtnis: Sequenz", "group": "Arbeitsgedächtnis", "desc": "Abfolge im Kopf behalten — 3-Schritte-Regel, Reihenfolge von Aktionen", "codes": ["COG-ARB-001"]}, {"id": "arb_parallel", "label": "Arbeitsgedächtnis: Parallel", "group": "Arbeitsgedächtnis", "desc": "Mehrere Aufgaben gleichzeitig — eigene Aktion + Spielstand + Mitspieler", "codes": ["COG-ARB-02"]}, {"id": "mix_2", "label": "Kombination: 2 Anforderungen", "group": "Kombination", "desc": "Zwei kognitive Bereiche gleichzeitig — z.B. Aufmerksamkeit + Entscheidung", "codes": ["COG-MIX-01", "COG-MIX-02", "COG-MIX-04"]}, {"id": "mix_3", "label": "Kombination: 3+ Anforderungen", "group": "Kombination", "desc": "Maximale kognitive Belastung — mehrere Bereiche gleichzeitig aktiv", "codes": ["COG-MIX-05", "COG-MIX-06"]}];
+const SUBS={technik:["TE-A-PASS","TE-A-WURF","TE-A-PRELL","TE-A-STOSS","TE-A-TAUSCH","TE-D-STELL","TE-D-BLOCK","TE-D-1V1","TE-X-BEID"],taktik:["TA-A-1V1","TA-A-AUS","TA-A-FREI","TA-A-KREUZ","TA-A-STOSS","TA-D-MAN","TA-D-OFF","TA-X-TEMP"],aufwaermen:["AW-AKT","AW-BALL","AW-COOL","AW-MENT","AW-MOB","AW-PRAEV"],kleine_spiele:["KS-BALL","KS-FANG","KS-FUN","KS-KOOP","KS-WETT"],athletik:["AT-AUS","AT-KOOR","AT-KRAFT","AT-SCHN","AT-SPRG","AT-STAB"],uebergeordnet:["US-2V2","US-3V3","US-4V4","US-AUFGAB","US-MINI","US-REGEL"],torwart:["TW-ABW","TW-ATHL","TW-AUF","TW-REAK","TW-STELL"]};
+const SL={"TE-A-PASS":"Passen","TE-A-WURF":"Wurf","TE-A-PRELL":"Prellen","TE-A-STOSS":"Stoß/Finte","TE-A-TAUSCH":"Kreuzung","TE-D-STELL":"Abwehr-Stellung","TE-D-BLOCK":"Block","TE-D-1V1":"Abwehr 1:1","TE-X-BEID":"Beidhändigkeit","TA-A-1V1":"Angriff 1:1","TA-A-AUS":"Außen","TA-A-FREI":"Freilaufen","TA-A-KREUZ":"Kreuzung","TA-A-STOSS":"Stoß-Taktik","TA-D-MAN":"Manndeckung","TA-D-OFF":"Offensiv-Abwehr","TA-X-TEMP":"Übergang/Tempo","AW-AKT":"Aktiv","AW-BALL":"Ball","AW-COOL":"Cool-Down","AW-MENT":"Mental","AW-MOB":"Mobilisation","AW-PRAEV":"Prävention","KS-BALL":"Ball-Spiele","KS-FANG":"Fangen","KS-FUN":"Fun","KS-KOOP":"Kooperation","KS-WETT":"Wettkampf","AT-AUS":"Ausdauer","AT-KOOR":"Koordination","AT-KRAFT":"Kraft","AT-SCHN":"Schnelligkeit","AT-SPRG":"Sprung","AT-STAB":"Stabilisation","US-2V2":"2:2","US-3V3":"3:3","US-4V4":"4:4","US-AUFGAB":"Aufgaben","US-MINI":"Mini","US-REGEL":"Regelvar.","TW-ABW":"TW-Abwehr","TW-ATHL":"TW-Athletik","TW-AUF":"TW-Aufbau","TW-REAK":"TW-Reaktion","TW-STELL":"TW-Stellung"};
+const MAT_GROUPS={"baelle": ["1 Ball pro Paar", "1 Ball pro Spieler", "1 Ball pro Gruppe", "Bälle (mehrere)", "2–3 Bälle pro Gruppe"], "mark": ["Hütchen", "Hütchen (4 Stück)", "Leibchen in 2 Farben", "Koordinationsleiter", "Reifen", "Klebeband/Markierung", "Tore", "Tor + Torhüter"], "geraete": ["Matte", "Weichbodenmatte", "Langbank", "Mattenkasten", "Sprungkasten", "Gymnastikmatte", "Balken", "Reißverschluss-Buddy", "Medizinbälle 1-2kg", "Theraband"], "sonst": ["Trillerpfeife", "Stoppuhr", "Taktiktafel", "Karten/Signalkarten", "keine"]};
+const GOALS=["1:1 mit Pass-Empfang","Anbieten in Bewegung","Anbieten ohne Ball","Antizipation des Mitspielers","Aufmerksamkeit teilen","Augen-Hand-Koordination","Beidhändigkeit","Beinarbeit und Sidesteps","Blick vom Ball lösen","Entscheidung Pass oder Wurf","Freilaufen vor dem Pass","Kommunikation in der Mannschaft","Konzentration auf Signal","Koordinative Schulung","Körperspannung beim Wurf","Pass im Lauf","Pass-Genauigkeit im Lauf","Räume erkennen und nutzen","Reaktion und Antizipation","Schnellangriff in Überzahl","Schnelle Entscheidung","Spielintelligenz","Tempo-Wechsel im 1:1","Torabschluss nach Anlauf","Wurfgenauigkeit","Zusammenspiel zwischen 2 Angreifern","Manndeckung verstehen","Kreuzung zur Wurfraum-Schaffung","Überzahl-Situation erkennen","Pass-Timing im Lauf","Antizipation der Verteidiger-Bewegung","Schnelles Umschalten Angriff–Abwehr","Räume schaffen durch Bewegung","Selbstvertrauen im 1:1","Pass-Genauigkeit unter Zeitdruck","Wurfentscheidung unter Druck","Gegenstoß nach Ballgewinn","Aktives Anbieten ohne Ball","Stellung halten in der Abwehr","Kreisspieler einbinden"];
+const QTGS=["1v1","pass","wurf","angriff","abwehr","sprint","sprung","kognitiv","fortgeschritten","anfänger","teamarbeit","beidhändig","koordination","wettkampf","prellen","paarweise","stafette","tempo","entscheidung","spielform","hütchen","ohne-gegner","kondition","reaktion","torwart","kreuzung","überzahl","gegenstoß"];
+
+// Integration toggles definition
+const TOGGLES = [
+  {id:'rechtschreibung', label:'Rechtschreibung korrigieren',     desc:'Tipp- und Grammatikfehler in Titel und Beschreibung bereinigen',                         default_on: true},
+  {id:'beschreibung',    label:'Beschreibung ausbauen',           desc:'Zu kurze Beschreibungen auf Qualitätsniveau der anderen Module erweitern (≥150 Zeichen)', default_on: false},
+  {id:'tags',            label:'Tags ergänzen',                   desc:'Fehlende Tags aus Kontext, Subcategory und Beschreibung automatisch hinzufügen',           default_on: true},
+  {id:'verlinkungen',    label:'Verlinkungen vorschlagen',        desc:'Passende prerequisites, progressions und related aktiv im Bestand suchen und verknüpfen',  default_on: true},
+  {id:'kognitive',       label:'Kognitive Codes prüfen & ergänzen','desc':'Weitere passende COG-Codes aus Übungskontext ableiten und ergänzen',                    default_on: true},
+  {id:'lernziele',       label:'Lernziele vervollständigen',      desc:'Fehlende Primär- oder Sekundärziele aus Beschreibung und Kontext ergänzen (Ziel: ≥2 je)',  default_on: true},
+  {id:'level',           label:'Level & Intensität bewerten',     desc:'Auto-Felder eigenständig aus Beschreibung, Subcategory und Hinweisen ableiten',            default_on: true},
+  {id:'verzahnung',      label:'Aktive Verzahnung (Gesamt)',      desc:'Modul maximal ins bestehende Netz einweben — Netz aus Progressionen, Tags, Verlinkungen',  default_on: true},
+];
+
+let S={k:null,mat:[],gp:[],gs:[],pre:[],prg:[],rel:[],cog_ids:[],tags:[],phases:[],vars:[],toggles:{}};
+TOGGLES.forEach(t=>S.toggles[t.id]=t.default_on);
+
+window.addEventListener('DOMContentLoaded',()=>{
+  buildMatGrid();buildQtags();buildCogGrid();buildToggles();addPh();setPreset('optimal');lu();
+  document.addEventListener('click',e=>{
+    ['pre-r','prg-r','rel-r','gp-r','gs-r'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&!el.parentElement.contains(e.target))el.innerHTML='';
+    });
+  });
+});
+
+// ── TOGGLES ──
+function buildToggles(){
+  const list=document.getElementById('toggle-list');
+  TOGGLES.forEach(t=>{
+    const row=document.createElement('div');row.className='tgl-row'+(S.toggles[t.id]?' active':'');row.id='tgl-row-'+t.id;
+    row.innerHTML=`<div class="tgl-info"><div class="tgl-label">${t.label}</div><div class="tgl-desc">${t.desc}</div></div>
+      <label class="tgl-switch"><input type="checkbox" id="tgl-${t.id}" ${S.toggles[t.id]?'checked':''} onchange="onToggle('${t.id}',this.checked)"><span class="tgl-slider"></span></label>`;
+    list.appendChild(row);
+  });
+}
+function onToggle(id,val){
+  S.toggles[id]=val;
+  const row=document.getElementById('tgl-row-'+id);
+  if(row)row.className='tgl-row'+(val?' active':'');
+  lu();
+}
+function setPreset(p){
+  const presets={
+    minimal: {rechtschreibung:false,beschreibung:false,tags:false,verlinkungen:false,kognitive:false,lernziele:false,level:false,verzahnung:false},
+    optimal: {rechtschreibung:true, beschreibung:false,tags:true, verlinkungen:true, kognitive:true, lernziele:true, level:true, verzahnung:true},
+    check:   {rechtschreibung:false,beschreibung:false,tags:false,verlinkungen:false,kognitive:false,lernziele:false,level:false,verzahnung:false}
+  };
+  // check = nur prüfen, alles false aber flag setzen
+  const vals=presets[p]||presets.optimal;
+  TOGGLES.forEach(t=>{
+    S.toggles[t.id]=vals[t.id];
+    const cb=document.getElementById('tgl-'+t.id);
+    if(cb)cb.checked=vals[t.id];
+    const row=document.getElementById('tgl-row-'+t.id);
+    if(row)row.className='tgl-row'+(vals[t.id]?' active':'');
+  });
+  S.toggles._preset=p;
+  lu();
+}
+
+// ── CARD TOGGLE ──
+function togCard(id){
+  const cb=document.getElementById('cb-'+id),btn=document.getElementById('tog-'+id);
+  const wasOff=cb.classList.contains('off');
+  cb.classList.toggle('off');
+  if(btn)btn.textContent=wasOff?'▲':'▼';
+}
+
+// ── PROGRESS ──
+function pc(p){if(p<30)return'#c8102e';if(p<55)return'#e05a00';if(p<75)return'#c89318';if(p<90)return'#7ab32e';return'#2e9e6e';}
+function setBar(id,p){const f=document.getElementById('prog-'+id),l=document.getElementById('pct-'+id);if(f){f.style.width=p+'%';f.style.background=pc(p);}if(l)l.textContent=Math.round(p)+'%';}
+function calcProg(){
+  const desc=document.getElementById('f-desc').value,title=document.getElementById('f-title').value;
+  document.getElementById('desc-ct').textContent=desc.length+' Zeichen';
+  const sc={};
+  sc.import=S.k?100:0;
+  let b=0;if(title.length>3)b+=25;if(document.getElementById('f-area').value)b+=25;if(document.getElementById('f-sub').value)b+=25;if(desc.length>=150)b+=25;else if(desc.length>0)b+=Math.round(desc.length/150*25);sc.basis=b;
+  // material: exclude 'keine' from count
+  const realMat=S.mat.filter(m=>m!=='keine');
+  sc.mat=Math.min(100,Math.round(realMat.length/2*100));
+  sc.ziele=Math.min(50,Math.round(S.gp.length/2*50))+Math.min(50,Math.round(S.gs.length/2*50));
+  sc.phasen=Math.min(100,Math.round(S.phases.filter(p=>p.name||p.description).length/3*100));
+  sc.var=Math.min(100,Math.round(S.vars.filter(v=>v.title||v.description).length/3*100));
+  sc.tags=Math.min(100,Math.round(S.tags.length/5*100));
+  sc.links=Math.min(100,(S.pre.length+S.prg.length+S.rel.length)*50);
+  const cogNone=document.getElementById('cog-none');
+  sc.cog=(cogNone&&cogNone.checked)?100:Math.min(100,S.cog_ids.length*50);
+  const hintsOk=Object.values(S.toggles).filter(v=>v===true).length>0||document.getElementById('f-hints').value.length>0;
+  sc.hints=hintsOk?100:30;
+  Object.entries(sc).forEach(([id,p])=>setBar(id,p));
+  const w={import:15,basis:25,mat:8,ziele:15,phasen:12,var:8,tags:7,links:5,cog:3,hints:2};
+  let tot=0,ws=0;Object.entries(w).forEach(([k,v])=>{tot+=(sc[k]||0)*v;ws+=v;});
+  const g=Math.round(tot/ws);
+  document.getElementById('gp-fill').style.cssText=`width:${g}%;background:${pc(g)};`;
+  document.getElementById('gp-pct').textContent=g+'%';
+}
+
+// ── IMPORT ──
+function onDrop(e){e.preventDefault();document.getElementById('dz').classList.remove('over');const f=e.dataTransfer.files[0];if(f)loadK(f);}
+function onFileIn(i){if(i.files[0])loadK(i.files[0]);}
+function loadK(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);const k=d.konstellation||d;S.k=k;
+      document.getElementById('k-name').value=k.name||'';
+      document.getElementById('k-schnitt').value=k.schnitt||'';
+      if(k.name)document.getElementById('f-title').value=k.name;
+      document.getElementById('f-court').value=(k.schnitt||'')==='totale'?'ganzfeld':'halbes_feld';
+      const pl=(k.tokens||[]).filter(t=>['att','def','tw'].includes(t.kind)).length;
+      if(pl>0){document.getElementById('f-pmin').value=Math.max(2,pl);document.getElementById('f-pmax').value=Math.max(4,pl*2);}
+      document.getElementById('svg-wrap').innerHTML=buildSVGFull(k);
+      document.getElementById('im').innerHTML='<span style="color:var(--good)">✓ '+file.name+'</span>';
+      lu();
+    }catch(err){document.getElementById('im').innerHTML='<span style="color:var(--acc)">✗ '+err.message+'</span>';}
+  };r.readAsText(file);
+}
+
+// ── SVG (exact Taktikboard geometry) ──
+function pitchSVG(s){
+  if(s==='totale')return`<svg viewBox="0 0 1400 700" xmlns="http://www.w3.org/2000/svg"><rect width="1400" height="700" fill="#f4eee2"/><rect width="1400" height="700" fill="none" stroke="#7a6e54" stroke-width="4"/><line x1="700" y1="0" x2="700" y2="700" stroke="#7a6e54" stroke-width="3"/><line x1="20" y1="0" x2="20" y2="700" stroke="#7a6e54" stroke-width="5"/><line x1="1380" y1="0" x2="1380" y2="700" stroke="#7a6e54" stroke-width="5"/><rect x="20" y="298" width="20" height="105" fill="none" stroke="#0f1115" stroke-width="6"/><path d="M 20 88 A 210 210 0 0 1 230 298 L 230 403 A 210 210 0 0 1 20 613" fill="rgba(150,140,110,0.14)" stroke="#7a6e54" stroke-width="4"/><path d="M 122 0 A 315 315 0 0 1 335 298 L 335 403 A 315 315 0 0 1 122 700" fill="none" stroke="#a0916f" stroke-width="3" stroke-dasharray="14 10"/><line x1="265" y1="340" x2="265" y2="360" stroke="#7a6e54" stroke-width="5"/><line x1="170" y1="340" x2="170" y2="360" stroke="#7a6e54" stroke-width="3"/><rect x="1360" y="298" width="20" height="105" fill="none" stroke="#0f1115" stroke-width="6"/><path d="M 1380 88 A 210 210 0 0 0 1170 298 L 1170 403 A 210 210 0 0 0 1380 613" fill="rgba(150,140,110,0.14)" stroke="#7a6e54" stroke-width="4"/><path d="M 1278 0 A 315 315 0 0 0 1065 298 L 1065 403 A 315 315 0 0 0 1278 700" fill="none" stroke="#a0916f" stroke-width="3" stroke-dasharray="14 10"/><line x1="1135" y1="340" x2="1135" y2="360" stroke="#7a6e54" stroke-width="5"/><line x1="1230" y1="340" x2="1230" y2="360" stroke="#7a6e54" stroke-width="3"/>`;
+  return`<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg"><rect width="1000" height="700" fill="#f4eee2"/><rect width="1000" height="700" fill="none" stroke="#7a6e54" stroke-width="4"/><line x1="0" y1="20" x2="1000" y2="20" stroke="#7a6e54" stroke-width="5"/><line x1="0" y1="680" x2="1000" y2="680" stroke="#a0916f" stroke-width="3" stroke-dasharray="14 10"/><rect x="425" y="0" width="150" height="20" fill="none" stroke="#0f1115" stroke-width="6"/><line x1="500" y1="0" x2="500" y2="20" stroke="#9aa3b2" stroke-width="1"/><path d="M 125 20 A 300 300 0 0 0 425 320 L 575 320 A 300 300 0 0 0 875 20" fill="rgba(150,140,110,0.14)" stroke="#7a6e54" stroke-width="4"/><path d="M 0 168 A 450 450 0 0 0 425 470 L 575 470 A 450 450 0 0 0 1000 168" fill="none" stroke="#a0916f" stroke-width="3" stroke-dasharray="14 10"/><line x1="475" y1="370" x2="525" y2="370" stroke="#7a6e54" stroke-width="5"/><line x1="485" y1="220" x2="515" y2="220" stroke="#7a6e54" stroke-width="3"/>`;
+}
+function tokenSVG(t){
+  const x=t.x,y=t.y,l=t.label||'';
+  if(t.kind==='att')return`<circle cx="${x}" cy="${y}" r="18" fill="#ff8a00" stroke="#7a3d00" stroke-width="3"/><text x="${x}" y="${y+6}" text-anchor="middle" font-size="16" fill="#fff" font-weight="bold">${l}</text>`;
+  if(t.kind==='def')return`<circle cx="${x}" cy="${y}" r="18" fill="#3ec1ff" stroke="#0a4d63" stroke-width="3"/><text x="${x}" y="${y+6}" text-anchor="middle" font-size="16" fill="#fff" font-weight="bold">${l}</text>`;
+  if(t.kind==='tw')return`<circle cx="${x}" cy="${y}" r="22" fill="#5dd39e" stroke="#1a5a3a" stroke-width="3"/><text x="${x}" y="${y+6}" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">TW</text>`;
+  // Ball: red handball like in Taktikboard
+  if(t.kind==='ball')return`<circle cx="${x}" cy="${y}" r="11" fill="#c8102e" stroke="#7a0a1a" stroke-width="2"/><circle cx="${x-3}" cy="${y-3}" r="3" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>`;
+  if(t.kind==='cone')return`<polygon points="${x},${y-10} ${x-7},${y+6} ${x+7},${y+6}" fill="#ff8a00" stroke="#7a3d00" stroke-width="1.5"/>`;
+  return'';
+}
+function lineSVG(l){let sw=4,dash='none',stroke='#ff8a00',marker='aO';if(l.kind==='pass'){stroke='#2ea043';dash='12 8';marker='aG';}else if(l.kind==='rund'){stroke='#3ec1ff';marker='aRund';}else if(l.kind==='shot'){stroke='#c8102e';sw=5;dash='0.1 9';marker='aS';}else if(l.kind==='free'){stroke=l.color||'#000';sw=l.width||3;marker='';}const me=marker?`marker-end="url(#${marker})"`:'' ;return`<path d="${l.path}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-dasharray="${dash}" stroke-linecap="round" stroke-linejoin="round" ${me}/>`;}
+function buildSVGFull(k){const defs=`<defs><marker id="aO" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#ff8a00"/></marker><marker id="aRund" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3ec1ff"/></marker><marker id="aG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#2ea043"/></marker><marker id="aS" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#c8102e"/></marker></defs>`;return pitchSVG(k.schnitt||'angriff_oben')+defs+(k.lines||[]).map(lineSVG).join('')+(k.tokens||[]).map(tokenSVG).join('')+'</svg>';}
+
+// ── SUBS ──
+function updSubs(){const a=document.getElementById('f-area').value,s=document.getElementById('f-sub');s.innerHTML='<option value="">— wählen —</option>';(SUBS[a]||[]).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v+' — '+(SL[v]||v);s.appendChild(o);});}
+
+// ── MATERIAL ──
+function buildMatGrid(){
+  const map={baelle:'mat-baelle',mark:'mat-mark',geraete:'mat-geraete',sonst:'mat-sonst'};
+  Object.entries(map).forEach(([key,id])=>{
+    const g=document.getElementById(id);
+    (MAT_GROUPS[key]||[]).forEach(m=>{
+      const d=document.createElement('div');d.className='ci';
+      const l=document.createElement('label');const c=document.createElement('input');c.type='checkbox';c.value=m;
+      c.addEventListener('change',()=>{if(c.checked){if(!S.mat.includes(m))S.mat.push(m);}else S.mat=S.mat.filter(x=>x!==m);rMatChips();lu();});
+      l.appendChild(c);l.appendChild(document.createTextNode(' '+m));d.appendChild(l);g.appendChild(d);
+    });
+  });
+}
+function addMatC(){const v=document.getElementById('mat-c').value.trim();if(v&&!S.mat.includes(v)){S.mat.push(v);rMatChips();document.getElementById('mat-c').value='';lu();}}
+function rMatChips(){const w=document.getElementById('mat-chips');w.innerHTML='';S.mat.forEach((m,i)=>{w.appendChild(mkChip(m,'cs',`S.mat.splice(${i},1);rMatChips();lu()`));});}
+
+// ── GOALS ──
+function fGoals(t){const q=document.getElementById('g'+t+'-s').value.toLowerCase(),r=document.getElementById('g'+t+'-r');r.innerHTML='';const list=q?GOALS.filter(g=>g.toLowerCase().includes(q)).slice(0,10):GOALS.slice(0,12);list.forEach(g=>{const d=document.createElement('div');d.className='si';d.textContent=g;d.addEventListener('click',()=>addG(t,g));r.appendChild(d);});}
+function addG(t,g){const a=t==='p'?S.gp:S.gs;if(!a.includes(g)){a.push(g);rGChips(t);lu();}document.getElementById('g'+t+'-s').value='';document.getElementById('g'+t+'-r').innerHTML='';}
+function addGC(t){const v=document.getElementById('g'+t+'-c2').value.trim();if(v){addG(t,v);document.getElementById('g'+t+'-c2').value='';}}
+function rGChips(t){const a=t==='p'?S.gp:S.gs,w=document.getElementById('g'+t+'-c');w.innerHTML='';a.forEach((g,i)=>{w.appendChild(mkChip(g,'ca',`('${t}'==='p'?S.gp:S.gs).splice(${i},1);rGChips('${t}');lu()`));});}
+
+// ── PHASES ──
+function addPh(prefill){
+  const i=S.phases.length;
+  S.phases.push(prefill||{name:'',duration_min:5,description:''});
+  const w=document.getElementById('ph-wrap');
+  const d=document.createElement('div');d.className='pi';
+  const n=prefill?prefill.name:'';
+  const dur=prefill?prefill.duration_min:5;
+  const desc=prefill?prefill.description:'';
+  d.innerHTML=`<div class="pn">${i+1}</div><input type="text" placeholder="Phasenname (z.B. Hauptteil)" value="${n.replace(/"/g,'&quot;')}" oninput="S.phases[${i}].name=this.value;lu()"><div style="display:flex;align-items:center;gap:5px;"><input type="number" min="1" max="99" value="${dur}" style="width:52px;text-align:center;" oninput="S.phases[${i}].duration_min=+this.value;lu()"><span style="font-size:11px;color:var(--muted);white-space:nowrap;">Min.</span></div><textarea rows="2" placeholder="Was passiert in dieser Phase?" oninput="S.phases[${i}].description=this.value;lu()">${desc.replace(/</g,'&lt;')}</textarea><button class="btn bg xs" onclick="rmPh(${i})" style="margin-top:2px;">✕</button>`;
+  w.appendChild(d);
+}
+function rmPh(i){S.phases.splice(i,1);rebPh();}
+function rebPh(){const s=[...S.phases];S.phases=[];document.getElementById('ph-wrap').innerHTML='';s.forEach(p=>addPh(p));lu();}
+
+// ── VARIATIONS ──
+function addVr(prefill){
+  const i=S.vars.length;
+  S.vars.push(prefill||{title:'',description:''});
+  const w=document.getElementById('vr-wrap');
+  const d=document.createElement('div');d.className='vi';
+  const t=prefill?prefill.title:'';
+  const desc=prefill?prefill.description:'';
+  d.innerHTML=`<div class="vh"><span>Variation ${i+1}</span><button class="btn bg xs" onclick="rmVr(${i})">✕</button></div><div class="row c2"><div><label>Titel</label><input type="text" placeholder="Bezeichnung" value="${t.replace(/"/g,'&quot;')}" oninput="S.vars[${i}].title=this.value;lu()"></div><div><label>Beschreibung</label><textarea rows="2" placeholder="Was ändert sich?" oninput="S.vars[${i}].description=this.value;lu()">${desc.replace(/</g,'&lt;')}</textarea></div></div>`;
+  w.appendChild(d);
+}
+function rmVr(i){S.vars.splice(i,1);rebVr();}
+function rebVr(){const s=[...S.vars];S.vars=[];document.getElementById('vr-wrap').innerHTML='';s.forEach(v=>addVr(v));lu();}
+
+// ── TAGS ──
+function buildQtags(){const w=document.getElementById('qtags');QTGS.forEach(t=>{const b=document.createElement('div');b.className='qtg';b.textContent=t;b.addEventListener('click',()=>{addTag(t);b.classList.add('on');});w.appendChild(b);});}
+function onTagKey(e){if(e.key==='Enter'||e.key===','){e.preventDefault();const v=e.target.value.replace(',','').trim();if(v){addTag(v);e.target.value='';}}}
+function addTag(t){t=t.toLowerCase().replace(/\s+/g,'-');if(!S.tags.includes(t)){S.tags.push(t);rTags();lu();}}
+function rTags(){const w=document.getElementById('tw'),inp=document.getElementById('ti');w.innerHTML='';S.tags.forEach((t,i)=>{w.appendChild(mkChip(t,'ck',`S.tags.splice(${i},1);rTags();lu()`));});w.appendChild(inp);}
+
+// ── MODULE SEARCH ──
+function fMods(k){const q=document.getElementById(k+'-s').value.toLowerCase(),r=document.getElementById(k+'-r');r.innerHTML='';const list=q?ML.filter(m=>m.title.toLowerCase().includes(q)||m.id.toLowerCase().includes(q)).slice(0,10):ML.slice(0,12);list.forEach(m=>{const d=document.createElement('div');d.className='si';d.innerHTML=`<span class="id">${m.id}</span>${m.title}`;d.addEventListener('click',()=>addLink(k,m.id));r.appendChild(d);});}
+function addLink(k,id){const a=k==='pre'?S.pre:k==='prg'?S.prg:S.rel;if(!a.includes(id)){a.push(id);rLinks(k);lu();}document.getElementById(k+'-s').value='';document.getElementById(k+'-r').innerHTML='';}
+function rLinks(k){const a=k==='pre'?S.pre:k==='prg'?S.prg:S.rel,w=document.getElementById(k+'-c');w.innerHTML='';a.forEach((id,i)=>{w.appendChild(mkChip(id,'cs',`('${k}'==='pre'?S.pre:'${k}'==='prg'?S.prg:S.rel).splice(${i},1);rLinks('${k}');lu()`));});}
+
+// ── COG ──
+function onCogNone(checked){
+  if(checked){
+    S.cog_ids=[];
+    document.querySelectorAll('.cog-card.on').forEach(el=>el.classList.remove('on'));
+    document.getElementById('cog-grid').style.opacity='0.35';
+    document.getElementById('cog-grid').style.pointerEvents='none';
+    rCogSel();lu();
+  } else {
+    document.getElementById('cog-grid').style.opacity='1';
+    document.getElementById('cog-grid').style.pointerEvents='auto';
+    lu();
+  }
+}
+function buildCogGrid(){const g=document.getElementById('cog-grid');COG_CONCEPTS.forEach(c=>{const card=document.createElement('div');card.className='cog-card';card.id='cog-'+c.id;card.innerHTML=`<div class="cog-grp">${c.group}</div><div class="cog-lbl">${c.label.replace(c.group+': ','')}</div><div class="cog-desc">${c.desc}</div>`;card.addEventListener('click',()=>{if(S.cog_ids.includes(c.id)){S.cog_ids=S.cog_ids.filter(x=>x!==c.id);card.classList.remove('on');}else{S.cog_ids.push(c.id);card.classList.add('on');}rCogSel();lu();});g.appendChild(card);});}
+function rCogSel(){const w=document.getElementById('cog-sel');w.innerHTML='';S.cog_ids.forEach((id,i)=>{const c=COG_CONCEPTS.find(x=>x.id===id);if(!c)return;w.appendChild(mkChip(c.label,'cg',`S.cog_ids.splice(${i},1);document.getElementById('cog-'+'${id}').classList.remove('on');rCogSel();lu()`));});}
+function getCogCodes(){return[...new Set(S.cog_ids.flatMap(id=>{const c=COG_CONCEPTS.find(x=>x.id===id);return c?c.codes:[];}))];}
+
+// ── CHIP ──
+function mkChip(text,cls,oc){const c=document.createElement('div');c.className='chip '+cls;const x=document.createElement('span');x.className='x';x.textContent='✕';x.setAttribute('onclick',oc);c.appendChild(document.createTextNode(text));c.appendChild(x);return c;}
+
+// ── JSON ──
+function buildMod(){
+  const sub=document.getElementById('f-sub').value,area=document.getElementById('f-area').value;
+  let phase='angriff';if(sub.startsWith('TA-D')||sub.startsWith('TE-D')||sub.startsWith('TW'))phase='abwehr';else if(sub.startsWith('AW'))phase='aufwaermen';else if(sub.startsWith('AT'))phase='athletik';else if(sub.startsWith('KS')||sub.startsWith('US'))phase='spiel';else if(sub.startsWith('TA-X')||sub.startsWith('TE-X'))phase='uebergang';
+  const rv=v=>v==='auto'?'auto':v;
+  const svgEl=document.querySelector('#svg-wrap svg');
+  // Filter 'keine' from material export
+  const matExport=S.mat.filter(m=>m!=='keine');
+  // Build session-unique draft ID
+  const draftId=sub?(sub+'-ENTWURF-'+String(Date.now()).slice(-4)):'ENTWURF-'+String(Date.now()).slice(-4);
+  return{
+    id:draftId,
+    title:document.getElementById('f-title').value,
+    area,subcategory:sub,phase,
+    level:rv(document.getElementById('f-lv').value)==='auto'?'auto':parseInt(document.getElementById('f-lv').value),
+    duration_min:parseInt(document.getElementById('f-dur').value)||10,
+    intensity:rv(document.getElementById('f-int').value),
+    players_min:parseInt(document.getElementById('f-pmin').value)||6,
+    players_max:parseInt(document.getElementById('f-pmax').value)||12,
+    court_space:document.getElementById('f-court').value,
+    material:matExport,
+    goals_primary:S.gp,goals_secondary:S.gs,
+    prerequisites:S.pre,progressions:S.prg,related:S.rel,
+    tags:S.tags,
+    cognitive_addons_compatible:getCogCodes(),
+    _cognitive_labels:S.cog_ids.map(id=>{const c=COG_CONCEPTS.find(x=>x.id===id);return c?c.label:id;}),
+    description:document.getElementById('f-desc').value,
+    phases:S.phases.filter(p=>p.name||p.description),
+    variations:S.vars.filter(v=>v.title||v.description),
+    transition_relevance:rv(document.getElementById('f-tr').value),
+    ek_konform:document.getElementById('f-ek').value==='auto'?'auto':document.getElementById('f-ek').value==='true',
+    visualization:{asset_id:'VIS-'+draftId,type:'svg_symbol',svg_inner:svgEl?svgEl.innerHTML:null,konstellation_raw:S.k||null},
+    _integration:{
+      preset: S.toggles._preset||'optimal',
+      toggles: Object.fromEntries(TOGGLES.map(t=>[t.id,S.toggles[t.id]])),
+      hints: document.getElementById('f-hints').value||null
+    }
+  };
+}
+function lu(){try{const m=buildMod();document.getElementById('jv').textContent=JSON.stringify(m,null,2);rStatus(m);calcProg();}catch(e){document.getElementById('jv').textContent='Fehler: '+e.message;}}
+function rStatus(m){const r=document.getElementById('sr2');r.innerHTML='';[{l:'Titel',ok:m.title.length>3},{l:'Area+Sub',ok:m.area&&m.subcategory},{l:'Beschreibung',ok:m.description.length>20},{l:'Ziele',ok:m.goals_primary.length>0,w:true},{l:'SVG',ok:!!S.k,w:true},{l:'Material',ok:m.material.length>0,w:true}].forEach(c=>{const ch=document.createElement('div');ch.className='sc '+(c.ok?'sok':c.w?'swn':'ser');ch.textContent=(c.ok?'✓':'⚠')+' '+c.l;r.appendChild(ch);});}
+function exportJSON(){const m=buildMod();const n=(m.title||'modul').replace(/[^a-z0-9]+/gi,'_').toLowerCase();const b=new Blob([JSON.stringify({modules:[m]},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='modul_export_'+n+'.json';a.click();}
+function copyJSON(){navigator.clipboard.writeText(document.getElementById('jv').textContent).then(()=>{const b=event.currentTarget;const o=b.textContent;b.textContent='✓';setTimeout(()=>b.textContent=o,1500);});}
+function resetForm(){if(confirm('Zurücksetzen?'))location.reload();}
+</script>
+</body>
+</html>
