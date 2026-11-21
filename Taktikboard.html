@@ -40,6 +40,7 @@
   --pen-pass:#2ea043;            /* Pass: grasgrün, gestrichelt */
   --pen-shot:#c8102e;            /* Torwurf: vereinsrot, gepunktet */
   --pen-free:#000000;
+  --pen-sperre:#111111;         /* Sperre: schwarz, mit Querriegel */
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
@@ -52,7 +53,7 @@ button{font-family:inherit}
 .toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;
   background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:20}
 .tb-title{font-weight:700;font-size:14px;color:var(--accent);letter-spacing:.02em;margin-right:4px}
-.tb-group{display:flex;align-items:center;gap:3px;padding:2px;
+.tb-group{display:flex;align-items:center;gap:3px;padding:2px;flex-wrap:wrap;
   background:var(--bg-elevated);border:1px solid var(--line);border-radius:8px}
 .tb-btn{background:transparent;border:0;color:var(--muted);
   padding:5px 8px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;
@@ -99,6 +100,11 @@ button{font-family:inherit}
 .tb-pen.pen-rund{color:var(--pen-rund)}
 .tb-pen.pen-pass{color:var(--pen-pass)}
 .tb-pen.pen-shot{color:var(--pen-shot)}
+.tb-pen.pen-prell{color:var(--pen-run)}
+.tb-pen.pen-ballrun{color:var(--pen-run)}
+.tb-pen.pen-sperre{color:var(--ink)}
+.tb-pen.pen-finte{color:var(--ink)}
+.tb-pen.pen-finte[aria-pressed="true"]{background:var(--accent);color:#fff;box-shadow:none}
 .tb-pen.pen-erase{color:var(--ink)}
 .tb-pen.pen-free{color:var(--ink)}
 .tb-pen.pen-free[aria-pressed="true"]{color:#ff8a00}
@@ -401,6 +407,18 @@ button{font-family:inherit}
       <button class="tb-pen pen-shot" id="penShot" aria-pressed="false" title="Torwurf (rot, gepunktet)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 3.5"><path d="M4 12h14"/><path d="M14 6l6 6-6 6" stroke-dasharray="0"/></svg>
       </button>
+      <button class="tb-pen pen-ballrun" id="penBallRun" aria-pressed="false" title="Laufweg mit Ball">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1.6 1.6"><path d="M4 12h14"/><path d="M14 6l6 6-6 6" stroke-dasharray="0"/></svg>
+      </button>
+      <button class="tb-pen pen-prell" id="penPrell" aria-pressed="false" title="Prellweg (Dribbling)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12q2.2-4 4.4 0t4.4 0"/><path d="M14 6l6 6-6 6" stroke-width="2.5"/></svg>
+      </button>
+      <button class="tb-pen pen-sperre" id="penSperre" aria-pressed="false" title="Sperre (Block)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v13"/><path d="M6 17h12"/></svg>
+      </button>
+      <button class="tb-pen pen-finte" id="penFinte" aria-pressed="false" title="Täuschung: Querstrich auf die nächste Linie">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 15h16" stroke-dasharray="3 2.5"/><path d="M14 19l-5-9"/></svg>
+      </button>
       <button class="tb-pen pen-erase" id="penErase" aria-pressed="false" title="Linie löschen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21L3 17 14 6l4 4z"/><path d="M17 9l4 4"/></svg>
       </button>
@@ -447,6 +465,16 @@ button{font-family:inherit}
     <button class="tb-action tb-icon-txt" id="btnClearAll" title="Komplettes Board leeren">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
       Board
+    </button>
+
+    <button class="tb-action tb-icon-txt" id="btnNormToggle"
+            title="Symbolsatz umschalten: Farbsymbole / Normsymbole" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="7,4 12,15 2,15"/>
+        <circle cx="17" cy="15" r="5"/>
+      </svg>
+      <span id="normToggleText">Farbe</span>
     </button>
 
     <div class="tb-spacer"></div>
@@ -653,7 +681,7 @@ function switchTab(tab){
   document.getElementById("tabTaktik").classList.toggle("active",   tab==="taktik");
   document.getElementById("tabMaterial").classList.toggle("active", tab==="material");
 }
-const STATE = { tokens:[], lines:[], texts:[], mode:"select", schnitt:"angriff_oben", nextId:1, history:[] };
+const STATE = { tokens:[], lines:[], texts:[], mode:"select", schnitt:"angriff_oben", nextId:1, history:[], symbolset:"farbe", finte:false };
 
 /* History für Undo (max. 3 Schritte zurück) */
 function pushHistory(){
@@ -866,10 +894,142 @@ const POOL_TW   = ["TW"];
 const POOL_TH   = ["TH"];   // Trainingshelfer
 const POOL_SUB  = ["W1","W2"];
 const POOL_BALL = ["B","Medi"];
-const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte","Kl. Kasten","Sprungkasten","Balken","Koord.Leiter"];
+const POOL_MAT  = ["Hütchen","Pylon","Ring","Figur","Bank","Matte","Kl. Kasten","Sprungkasten","Balken","Koord.Leiter","Ballkiste"];
+
+
+/* =====================================================================
+   NORMSYMBOLE (DHB-Legende) — Variante B2
+   Blickrichtung = gefuellte Spitze, Form rotiert mit.
+   opts: { facing: null|0..359, ball: null|"l"|"r", anspieler: bool, r }
+   ===================================================================== */
+const NORM_KINDS = ["att","def","tw","sub","th","ball","pylon","bank","matte","balken",
+                    "ballkiste","kasten_klein","kasten_gross","koordleiter","figur","medi"];
+
+function normSymbol(kind, opts){
+  opts = opts || {};
+  const r  = opts.r || 30;
+  const ST = "#111";
+  const BG = "#ffffff";
+  const SW = Math.max(1.6, r*0.08);
+  const f  = (opts.facing === 0 || opts.facing) ? opts.facing : null;
+
+  function ballPunkt(){
+    if(!opts.ball) return "";
+    const fr = (f == null ? 0 : f) * Math.PI/180;
+    const dir = [Math.sin(fr), -Math.cos(fr)];
+    const re  = [Math.cos(fr),  Math.sin(fr)];
+    const sgn = opts.ball === "l" ? -1 : 1;
+    const bx = re[0]*sgn*r*1.18 - dir[0]*r*0.28;
+    const by = re[1]*sgn*r*1.18 - dir[1]*r*0.28;
+    return `<circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="${(r*0.17).toFixed(1)}" fill="${ST}"/>`;
+  }
+  const rot = inner => (f == null) ? inner : `<g transform="rotate(${f})">${inner}</g>`;
+
+  switch(kind){
+    case "att": {
+      const tri = `0,${-r} ${r*0.92},${r*0.55} ${-r*0.92},${r*0.55}`;
+      if(opts.anspieler)
+        return rot(`<polygon points="${tri}" fill="${ST}" stroke="${ST}" stroke-width="${SW}"/>`) + ballPunkt();
+      let inner = `<polygon points="${tri}" fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>`;
+      if(f != null){
+        const yK = -r*0.05;                       // B2: grosser Keil
+        const w  = (0.92*r * (yK + r) / (1.55*r)).toFixed(1);
+        inner += `<polygon points="0,${(-r*0.93).toFixed(1)} ${w},${yK.toFixed(1)} ${-w},${yK.toFixed(1)}" fill="${ST}"/>`;
+      }
+      return rot(inner) + ballPunkt();
+    }
+    case "def": {
+      const halb = `<path d="M ${-r} 0 A ${r} ${r} 0 0 1 ${r} 0 Z" fill="${ST}"/>`;
+      return rot(`<circle r="${r}" fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>${halb}`) + ballPunkt();
+    }
+    case "tw": {
+      const marke = `<path d="M ${-r*0.56} ${-r*0.65} A ${r*0.9} ${r*0.9} 0 0 1 ${r*0.56} ${-r*0.65}"
+                       fill="none" stroke="${ST}" stroke-width="${SW*1.9}"/>`;
+      return rot(`<circle r="${r*0.9}" fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>${marke}`) + ballPunkt();
+    }
+    case "sub":
+      return `<polygon points="0,${-r} ${r*0.92},${r*0.55} ${-r*0.92},${r*0.55}"
+                fill="${BG}" stroke="${ST}" stroke-width="${SW}" stroke-dasharray="6 5"/>`;
+    case "th":
+      return `<circle r="${r*0.8}" fill="transparent"/><text y="${r*0.42}" text-anchor="middle" font-size="${r*1.5}"
+                font-weight="700" fill="${ST}" font-family="Arial,sans-serif">T</text>`;
+    case "ball":
+      return `<circle r="${r*0.62}" fill="transparent"/><circle r="${r*0.2}" fill="${ST}"/>`;
+
+    /* ---- Material: Normdarstellung (Huetchen/Ring bleiben farbig) ---- */
+    case "pylon": {
+      const h = r*0.85, w = r*0.52;
+      const q1 = `<line x1="${-w*0.42}" y1="${h*0.10}" x2="${w*0.42}" y2="${h*0.10}" stroke="${ST}" stroke-width="${SW*0.8}"/>`;
+      const q2 = `<line x1="${-w*0.66}" y1="${h*0.42}" x2="${w*0.66}" y2="${h*0.42}" stroke="${ST}" stroke-width="${SW*0.8}"/>`;
+      return `<polygon points="0,${-h} ${w},${h*0.62} ${-w},${h*0.62}" fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>${q1}${q2}`;
+    }
+    case "ballkiste": {
+      const a = r*0.86;
+      const pkt = [[-0.34,-0.30],[0.34,-0.30],[-0.34,0.30],[0.34,0.30]]
+        .map(([px,py]) => `<circle cx="${(px*a*2).toFixed(1)}" cy="${(py*a*2).toFixed(1)}" r="${(r*0.17).toFixed(1)}" fill="${ST}"/>`).join("");
+      return `<rect x="${-a}" y="${-a}" width="${a*2}" height="${a*2}" rx="${r*0.1}"
+                fill="${BG}" stroke="${ST}" stroke-width="${SW*1.2}"/>${pkt}`;
+    }
+    case "bank": {
+      const bw = r*6.0, bh = r*0.5;
+      return `<rect x="${-bw/2}" y="${-bh/2}" width="${bw}" height="${bh}" rx="2"
+                fill="#c9c9c9" stroke="${ST}" stroke-width="${SW}"/>`;
+    }
+    case "matte": {
+      const mw = r*3.0, mh = r*1.8;
+      return `<rect x="${-mw/2}" y="${-mh/2}" width="${mw}" height="${mh}" rx="2"
+                fill="#c9c9c9" stroke="${ST}" stroke-width="${SW}"/>`;
+    }
+    case "balken": {
+      const lw = r*3.0, lh = r*0.4;
+      return `<rect x="${-lw/2}" y="${-lh/2}" width="${lw}" height="${lh}" rx="2"
+                fill="#c9c9c9" stroke="${ST}" stroke-width="${SW}"/>`;
+    }
+    case "kasten_klein": {
+      const kw = r*1.5, kh = r*0.9;
+      return `<rect x="${-kw/2}" y="${-kh/2}" width="${kw}" height="${kh}" rx="2"
+                fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>
+              <line x1="${-kw/2}" y1="${-kh/2 + kh*0.3}" x2="${kw/2}" y2="${-kh/2 + kh*0.3}"
+                stroke="${ST}" stroke-width="${SW*0.7}"/>`;
+    }
+    case "kasten_gross": {
+      const gw = r*3.0, gh = r*1.8, ew = gh/5;
+      const et = [1,2,3,4].map(i =>
+        `<line x1="${-gw/2}" y1="${(-gh/2 + ew*i).toFixed(1)}" x2="${gw/2}" y2="${(-gh/2 + ew*i).toFixed(1)}"
+           stroke="${ST}" stroke-width="${SW*0.7}"/>`).join("");
+      return `<rect x="${-gw/2}" y="${-gh/2}" width="${gw}" height="${gh}" rx="2"
+                fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>${et}`;
+    }
+    case "koordleiter": {
+      const lw = r*6.0, lh = r*0.9, steps = 10;
+      const st = lw / (steps + 1);
+      const sp = Array.from({length: steps}, (_, i) =>
+        `<line x1="${(-lw/2 + st*(i+1)).toFixed(1)}" y1="${-lh/2}" x2="${(-lw/2 + st*(i+1)).toFixed(1)}" y2="${lh/2}"
+           stroke="${ST}" stroke-width="${SW*0.6}"/>`).join("");
+      return `<rect x="${-lw/2}" y="${-lh/2}" width="${lw}" height="${lh}"
+                fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>${sp}`;
+    }
+    case "figur": {
+      // Fahnenstange-Form der Legende: Stab mit Wimpel
+      const h = r*1.5;
+      return `<circle r="${r*0.75}" fill="transparent"/>
+              <line x1="0" y1="${h*0.5}" x2="0" y2="${-h*0.5}" stroke="${ST}" stroke-width="${SW*1.3}" stroke-linecap="round"/>
+              <polygon points="0,${-h*0.5} ${r*0.55},${-h*0.28} 0,${-h*0.10}" fill="${ST}"/>`;
+    }
+    case "medi": {
+      return `<circle r="${r*0.5}" fill="${BG}" stroke="${ST}" stroke-width="${SW}"/>
+              <circle r="${r*0.22}" fill="${ST}"/>`;
+    }
+  }
+  return null;
+}
 
 function tokenSvg(kind, label, opts){
   opts = opts || {};
+  if(STATE.symbolset === "norm"){
+    const ns = normSymbol(kind, opts);
+    if(ns !== null) return ns;
+  }
   const r = opts.r || 30;
   // Schriftgröße an Label-Länge anpassen: 1 Zeichen groß, 2+ kleiner
   const labLen = String(label||"").length;
@@ -917,6 +1077,14 @@ function tokenSvg(kind, label, opts){
               <polygon points="${hexPts}" fill="none" stroke="#1a1a1a" stroke-width="${(br*0.08).toFixed(1)}"/>
               ${seams}
               <circle r="${br}" fill="none" stroke="#1a1a1a" stroke-width="${(br*0.09).toFixed(1)}"/>`;
+    }
+    case "ballkiste": {
+      const a = r*0.86;
+      const baelle = [[-0.34,-0.30],[0.34,-0.30],[-0.34,0.30],[0.34,0.30]]
+        .map(([px,py]) => `<circle cx="${(px*a*2).toFixed(1)}" cy="${(py*a*2).toFixed(1)}" r="${(r*0.18).toFixed(1)}"
+               fill="#e53535" stroke="#1a1a1a" stroke-width="1"/>`).join("");
+      return `<rect x="${-a}" y="${-a}" width="${a*2}" height="${a*2}" rx="${r*0.1}"
+                fill="#d9c7a5" stroke="#6b5233" stroke-width="2"/>${baelle}`;
     }
     case "huetchen": {
       // Flaches rundes Hütchen, Farbe variabel (Default: Rot)
@@ -1070,8 +1238,14 @@ function renderBank(){
         <svg viewBox="${vb}">${tokenSvg(kind, lab)}</svg></div>`;
     }).join("");
   }
-  fill("bankAtt",  "att",  POOL_ATT);
-  fill("bankDef",  "def",  POOL_DEF);
+  if(STATE.symbolset === "norm"){
+    // Normsymbole tragen kein Label - sechs identische Figuren waeren sinnlos
+    fill("bankAtt", "att", [""]);
+    fill("bankDef", "def", [""]);
+  } else {
+    fill("bankAtt",  "att",  POOL_ATT);
+    fill("bankDef",  "def",  POOL_DEF);
+  }
   // TW und TH gemeinsam in eine Grid-Zelle
   const elTwTh = document.getElementById("bankTwTh");
   if(elTwTh){
@@ -1104,7 +1278,7 @@ function renderBank(){
   // Material: jedes Element hat eigenes kind, kein Label
   const elMat = document.getElementById("bankMat");
   if(elMat){
-    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte", "Kl. Kasten":"kasten_klein", "Sprungkasten":"kasten_gross", "Balken":"balken", "Koord.Leiter":"koordleiter"};
+    const KIND_FOR = {"Hütchen":"huetchen", "Pylon":"pylon", "Ring":"ring", "Figur":"figur", "Bank":"bank", "Matte":"matte", "Kl. Kasten":"kasten_klein", "Sprungkasten":"kasten_gross", "Balken":"balken", "Koord.Leiter":"koordleiter", "Ballkiste":"ballkiste"};
     elMat.innerHTML = POOL_MAT.map(lab => {
       const r = 30;
       const vb = `-${r+4} -${r+4} ${(r+4)*2} ${(r+4)*2}`;
@@ -1134,6 +1308,7 @@ function renderBoard(){
     <g id="lines"></g>
     <g id="texts"></g>
     <g id="tokens"></g>
+    <g id="rotOverlay"></g>
   `;
   const linesG = board.querySelector("#lines");
   STATE.lines.forEach(l => linesG.appendChild(makeLineEl(l)));
@@ -1143,7 +1318,10 @@ function renderBoard(){
   STATE.tokens.forEach(t => tokG.appendChild(makeTokenEl(t)));
   // Modus-Marker fürs Board (steuert per CSS Sichtbarkeit von Rahmen/Griffen)
   board.setAttribute("data-text-mode", STATE.mode === "text" ? "true" : "false");
+  if(typeof drawRotOverlay === "function") drawRotOverlay();
 }
+
+function normDefaultFacing(t){ return t.facing; }
 
 function makeTokenEl(t){
   const g = document.createElementNS("http://www.w3.org/2000/svg","g");
@@ -1156,59 +1334,290 @@ function makeTokenEl(t){
     g.setAttribute("transform", `translate(${t.x} ${t.y})`);
   }
   g.setAttribute("data-id", t.id);
-  g.innerHTML = tokenSvg(t.kind, t.label, {color: t.color, colorDark: t.colorDark});
+  g.innerHTML = tokenSvg(t.kind, t.label, {color: t.color, colorDark: t.colorDark,
+                          facing: normDefaultFacing(t), ball: t.ball, anspieler: t.anspieler});
+  g.style.filter = "";
   g.addEventListener("pointerdown", onTokenPointerDown);
   return g;
 }
 
-function makeLineEl(l){
-  const p = document.createElementNS("http://www.w3.org/2000/svg","path");
-  p.setAttribute("d", l.path);
-  p.setAttribute("fill", "none");
-  p.setAttribute("stroke", l.color);
-  p.setAttribute("stroke-linecap","round");
-  p.setAttribute("stroke-linejoin","round");
-  p.setAttribute("data-id", l.id);
-  if(l.kind === "shot"){
-    // Torwurf: vereinsrot, gepunktet
-    p.setAttribute("stroke-width","5");
-    p.setAttribute("stroke-dasharray","0.1 9");
-    p.setAttribute("marker-end","url(#arrShot)");
-  } else if(l.kind === "pass"){
-    // Pass: grün, gestrichelt
-    p.setAttribute("stroke-width","4");
-    p.setAttribute("stroke-dasharray","12 8");
-    p.setAttribute("marker-end","url(#arrPass)");
-  } else if(l.kind === "rund"){
-    // Verteidiger-Laufweg: blau, durchgezogen
-    p.setAttribute("stroke-width","4");
-    p.setAttribute("marker-end","url(#arrRund)");
-  } else if(l.kind === "free"){
-    // freier Stift: durchgezogen, gewählte Strichstärke (Default 3), ohne Pfeilspitze
-    p.setAttribute("stroke-width", String(l.width || 3));
-  } else {
-    // Angreifer-Laufweg (run)
-    p.setAttribute("stroke-width","4");
-    p.setAttribute("marker-end","url(#arrRun)");
+/* =====================================================================
+   LINIENARTEN nach DHB-Legende
+   Jede Art ist auch in Schwarz-Weiss an der Strichart erkennbar.
+   Laufwege bleiben farbig - die Legende unterscheidet sie ueber Farbe.
+   ===================================================================== */
+const LINIEN_SVG_NS = "http://www.w3.org/2000/svg";
+const FINTE_MODI = ["pass","shot"];   // Passtaeuschung und Torwurffinte
+
+function lineStil(kind){
+  const norm = (STATE.symbolset === "norm");
+  const SW = "#111";
+  switch(kind){
+    case "rund":    return { color:"var(--pen-rund)", width:4, pfeil:true };
+    case "pass":    return { color: norm ? SW : "var(--pen-pass)", width:4, dash:"12 8", pfeil:true };
+    case "ballrun": return { color: norm ? SW : "var(--pen-run)",  width:3.5, dash:"5 4", pfeil:true };
+    case "prell":   return { color: norm ? SW : "var(--pen-run)",  width:3.5, pfeil:true, welle:true };
+    case "shot":    return { color: norm ? SW : "var(--pen-shot)", width:7, pfeil:true, doppel:true };
+    case "sperre":  return { color:"var(--pen-sperre)", width:4.5, riegel:true };
+    default:        return { color:"var(--pen-run)", width:4, pfeil:true };   // run
   }
-  p.addEventListener("pointerdown",(ev)=>{
+}
+
+/* Unsichtbarer Hilfspfad zum Vermessen beliebiger Linien */
+let _messEl = null, _messEl2 = null;
+function _neuerMessPfad(){
+  const svg = document.createElementNS(LINIEN_SVG_NS, "svg");
+  svg.setAttribute("width","0"); svg.setAttribute("height","0");
+  svg.setAttribute("aria-hidden","true");
+  svg.style.cssText = "position:absolute;left:-9999px;top:0;width:0;height:0";
+  const pfad = document.createElementNS(LINIEN_SVG_NS, "path");
+  svg.appendChild(pfad);
+  document.body.appendChild(svg);
+  return pfad;
+}
+function messPfad(d){
+  if(!_messEl) _messEl = _neuerMessPfad();
+  _messEl.setAttribute("d", d);
+  return _messEl;
+}
+/* eigener Messpfad fuer Zwischenrechnungen - sonst verliert der Aufrufer seinen */
+function messPfad2(d){
+  if(!_messEl2) _messEl2 = _neuerMessPfad();
+  _messEl2.setAttribute("d", d);
+  return _messEl2;
+}
+
+/* Richtung am Linienende - kurze Basis laesst die Spitze zittern */
+function pfadEndRichtung(mp, L, basis){
+  const b = mp.getPointAtLength(L);
+  for(const bl of [basis, basis*0.5, 4, 2]){
+    const a = mp.getPointAtLength(Math.max(0, L - bl));
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    if(len > 0.8) return { x: dx/len, y: dy/len };
+  }
+  return { x: 1, y: 0 };
+}
+
+function pfadRichtung(mp, s, L){
+  const a = mp.getPointAtLength(Math.max(0, s - 2));
+  const b = mp.getPointAtLength(Math.min(L, s + 2));
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  return { x: dx/len, y: dy/len };
+}
+
+/* Pfad am Ende kuerzen - damit die weisse Innenlinie die Pfeilspitze frei laesst */
+function pfadGekuerzt(d, cut){
+  const mp = messPfad2(d), L = mp.getTotalLength();
+  const end = Math.max(1, L - cut);
+  const n = Math.max(2, Math.ceil(end / 6));
+  let out = "";
+  for(let i = 0; i <= n; i++){
+    const pt = mp.getPointAtLength(end * i / n);
+    out += (i ? " L " : "M ") + pt.x.toFixed(1) + " " + pt.y.toFixed(1);
+  }
+  return out;
+}
+
+/* Wellenlinie (Prellweg) entlang des gezeichneten Pfades */
+function pfadWelle(d, amp, wl){
+  const mp = messPfad(d), L = mp.getTotalLength();
+  if(L < 14) return d;
+  const n = Math.max(2, Math.round(L / wl));
+  const step = L / n;
+  const p0 = mp.getPointAtLength(0);
+  let out = `M ${p0.x.toFixed(1)} ${p0.y.toFixed(1)}`;
+  for(let i = 1; i <= n; i++){
+    const sm = (i - 0.5) * step, se = i * step;
+    const pm = mp.getPointAtLength(sm), pe = mp.getPointAtLength(se);
+    const dm = pfadRichtung(mp, sm, L);
+    const a  = (i === n) ? amp * 0.35 : amp;        // letzter Bogen flach, damit der Pfeil sitzt
+    const off = (i % 2) ? a : -a;
+    const cx = pm.x - dm.y * off, cy = pm.y + dm.x * off;
+    out += ` Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${pe.x.toFixed(1)} ${pe.y.toFixed(1)}`;
+  }
+  return out;
+}
+
+function makeLineEl(l){
+  const g = document.createElementNS(LINIEN_SVG_NS, "g");
+  g.setAttribute("data-id", l.id);
+  g.setAttribute("class", "tb-line");
+
+  /* Freier Stift: unveraendert, eine schlichte Linie */
+  if(l.kind === "free"){
+    const p = document.createElementNS(LINIEN_SVG_NS, "path");
+    p.setAttribute("class", "tb-line-main");
+    p.setAttribute("data-id", l.id);
+    p.setAttribute("d", l.path);
+    p.setAttribute("fill", "none");
+    p.setAttribute("stroke", l.color);
+    p.setAttribute("stroke-width", String(l.width || 3));
+    p.setAttribute("stroke-linecap", "round");
+    p.setAttribute("stroke-linejoin", "round");
+    g.appendChild(p);
+    g.addEventListener("pointerdown", lineErasePointer(l));
+    return g;
+  }
+
+  const st = lineStil(l.kind);
+  const gezeichnet = l.path.indexOf(" L ") !== -1;   // waehrend des Ziehens noch ein Punkt
+
+  /* Hauptlinie - bei Prellweg als Welle */
+  let dMain = l.path;
+  if(st.welle && gezeichnet){
+    try{ dMain = pfadWelle(l.path, 6, 17); }catch(e){}
+  }
+
+  const haupt = document.createElementNS(LINIEN_SVG_NS, "path");
+  haupt.setAttribute("class", "tb-line-main");
+  haupt.setAttribute("data-id", l.id);
+  haupt.setAttribute("d", dMain);
+  haupt.setAttribute("fill", "none");
+  haupt.setAttribute("stroke", st.color);
+  haupt.setAttribute("stroke-width", String(st.width));
+  haupt.setAttribute("stroke-linecap", st.dash ? "butt" : "round");
+  haupt.setAttribute("stroke-linejoin", "round");
+  if(st.dash) haupt.setAttribute("stroke-dasharray", st.dash);
+  g.appendChild(haupt);
+
+  /* Dekoration erst, wenn die Linie wirklich gezogen wurde */
+  if(gezeichnet){
+    try{
+      const mp = messPfad(dMain), L = mp.getTotalLength();
+      if(L > 6){
+        const deko = [];
+        const sz  = Math.max(11, st.width * 2.6);          // Laenge der Pfeilspitze
+        const dir = pfadEndRichtung(mp, L, Math.min(L * 0.6, 14));
+        const pe  = mp.getPointAtLength(L);
+        const nx  = -dir.y, ny = dir.x;
+
+        /* Pfeilspitze sitzt auf dem Linienende, die Linie endet an ihrer Basis */
+        if(st.pfeil){
+          const bx = pe.x - dir.x * sz, by = pe.y - dir.y * sz;
+          deko.push(`<polygon points="${pe.x.toFixed(1)},${pe.y.toFixed(1)}
+                       ${(bx + nx*sz*0.52).toFixed(1)},${(by + ny*sz*0.52).toFixed(1)}
+                       ${(bx - nx*sz*0.52).toFixed(1)},${(by - ny*sz*0.52).toFixed(1)}"
+                       fill="${st.color}"/>`);
+          // Hauptlinie kuerzen, sonst quillt die runde Kappe aus der Spitze
+          const cut = Math.min(L - 1, sz * 0.72);
+          if(cut > 0.5) haupt.setAttribute("d", pfadGekuerzt(dMain, cut));
+        }
+
+        /* Torwurf: Innenlinie in Hintergrundfarbe erzeugt die Doppellinie */
+        if(st.doppel){
+          deko.unshift(`<path d="${pfadGekuerzt(dMain, Math.min(L - 1, sz + 3))}" fill="none"
+                       stroke="var(--court-bg)" stroke-width="${(st.width - 4).toFixed(1)}"
+                       stroke-linecap="butt" stroke-linejoin="round"/>`);
+        }
+
+        /* Sperre: Querriegel am Ende statt Pfeil */
+        if(st.riegel){
+          const hw = 15;
+          deko.push(`<line x1="${(pe.x + nx*hw).toFixed(1)}" y1="${(pe.y + ny*hw).toFixed(1)}"
+                       x2="${(pe.x - nx*hw).toFixed(1)}" y2="${(pe.y - ny*hw).toFixed(1)}"
+                       stroke="${st.color}" stroke-width="${st.width}" stroke-linecap="round"/>`);
+        }
+
+        /* Taeuschung: Schraegstrich kurz hinter der Mitte */
+        if(l.finte){
+          const sm = L * 0.55;
+          const pm = mp.getPointAtLength(sm), dm = pfadRichtung(mp, sm, L);
+          const a = Math.atan2(dm.y, dm.x) + Math.PI / 3;
+          const hx = Math.cos(a) * 11, hy = Math.sin(a) * 11;
+          deko.push(`<line x1="${(pm.x - hx).toFixed(1)}" y1="${(pm.y - hy).toFixed(1)}"
+                       x2="${(pm.x + hx).toFixed(1)}" y2="${(pm.y + hy).toFixed(1)}"
+                       stroke="${st.color}" stroke-width="${Math.max(3, st.width*0.8).toFixed(1)}"
+                       stroke-linecap="round"/>`);
+        }
+
+        if(deko.length){
+          const wrap = document.createElementNS(LINIEN_SVG_NS, "g");
+          wrap.innerHTML = deko.join("");
+          while(wrap.firstChild) g.appendChild(wrap.firstChild);
+        }
+      }
+    }catch(e){}
+  }
+
+  g.addEventListener("pointerdown", lineErasePointer(l));
+  return g;
+}
+
+/* =====================================================================
+   STIFTSYMBOLE
+   Jeder Knopf zeigt genau die Linie, die er zeichnet - Farbe und
+   Strichart folgen dem aktiven Symbolsatz.
+   ===================================================================== */
+const PEN_SYMBOLE = [["penRun","run"],["penRunDef","rund"],["penPass","pass"],
+                     ["penShot","shot"],["penBallRun","ballrun"],["penPrell","prell"],
+                     ["penSperre","sperre"]];
+
+function penIconSvg(kind){
+  const st = lineStil(kind);
+  const c  = st.color;
+  const sw = Math.max(1.8, st.width * 0.55);
+  let out  = '<svg viewBox="0 0 24 24" fill="none">';
+
+  if(st.doppel){
+    out += `<path d="M2 10.2 H14" stroke="${c}" stroke-width="1.7"/>`;
+    out += `<path d="M2 13.8 H14" stroke="${c}" stroke-width="1.7"/>`;
+  } else {
+    const d = st.welle ? "M2 12 q2.1 -3.6 4.2 0 t4.2 0 t4.2 0" : "M2 12 H15";
+    let dash = "";
+    if(st.dash){
+      dash = ' stroke-dasharray="' +
+             st.dash.split(" ").map(v => (parseFloat(v) * 0.3).toFixed(1)).join(" ") + '"';
+    }
+    out += `<path d="${d}" stroke="${c}" stroke-width="${sw}"
+              stroke-linecap="${st.dash ? "butt" : "round"}"${dash}/>`;
+  }
+
+  if(st.pfeil)  out += `<polygon points="21.5,12 14,8.2 14,15.8" fill="${c}"/>`;
+  if(st.riegel) out += `<line x1="16.5" y1="5" x2="16.5" y2="19" stroke="${c}"
+                          stroke-width="${sw}" stroke-linecap="round"/>`;
+  return out + "</svg>";
+}
+
+function renderPenIcons(){
+  PEN_SYMBOLE.forEach(function(pair){
+    const b = document.getElementById(pair[0]);
+    if(!b) return;
+    const st = lineStil(pair[1]);
+    b.innerHTML = penIconSvg(pair[1]);
+    // Farbe auch fuer den Aktiv-Unterstrich des Knopfes
+    b.style.color = st.color;
+  });
+}
+
+function lineErasePointer(l){
+  return function(ev){
     if(STATE.mode === "erase"){
       ev.stopPropagation();
       STATE.lines = STATE.lines.filter(x => x.id !== l.id);
       renderBoard();
     }
-  });
-  return p;
+  };
 }
 
 let dragInfo = null;
+
+function naechstesFreiesLabel(kind){
+  const pool = kind === "att" ? POOL_ATT : kind === "def" ? POOL_DEF : null;
+  if(!pool) return "";
+  const belegt = STATE.tokens.filter(t => t.kind === kind).map(t => t.label);
+  const frei = pool.find(l => belegt.indexOf(l) === -1);
+  return frei || pool[0];
+}
 
 function onBankPointerDown(ev){
   if(STATE.mode !== "select") setMode("select");
   ev.preventDefault();
   const item = ev.currentTarget;
   const kind  = item.dataset.kind;
-  const label = item.dataset.label;
+  let label = item.dataset.label;
+  if(!label && (kind === "att" || kind === "def")) label = naechstesFreiesLabel(kind);
   pushHistory();
   const tok = { id: STATE.nextId++, kind, label, labelMode:"position", x:100, y:100 };
   STATE.tokens.push(tok);
@@ -1230,6 +1639,189 @@ function onBankPointerDown(ev){
    bei aktivem touch-action:none nicht zuverlässig feuert. */
 let lastTapInfo = { tokenId: null, time: 0 };
 
+
+/* =====================================================================
+   BLICKRICHTUNGS-OVERLAY
+   Oeffnet beim Platzieren eines Spielers und per langem Druck.
+   Ziehen nahe am Token rastet auf 45 Grad, weiter aussen auf 5 Grad.
+   ===================================================================== */
+let rotState = null;                       // { tokenId, dragging, moved }
+let holdTimer = null;
+const ROT_KINDS = ["att","def","tw"];
+
+function rotFaehig(tok){
+  return STATE.symbolset === "norm" && tok && ROT_KINDS.indexOf(tok.kind) !== -1;
+}
+
+function rotOpen(tok){
+  if(!rotFaehig(tok)) return;
+  rotState = { tokenId: tok.id, dragging:false, moved:false };
+  drawRotOverlay();
+}
+
+function rotClose(){
+  rotState = null;
+  drawRotOverlay();
+}
+
+function rotToken(){
+  return rotState ? STATE.tokens.find(t => t.id === rotState.tokenId) : null;
+}
+
+/* Token einzeln neu zeichnen - renderBoard() waere fuer jedes Grad zu teuer */
+function rotRefreshToken(tok){
+  const board = document.getElementById("board");
+  const alt = board.querySelector(`#tokens [data-id="${tok.id}"]`);
+  if(alt){ alt.replaceWith(makeTokenEl(tok)); }
+}
+
+function drawRotOverlay(){
+  const board = document.getElementById("board");
+  if(!board) return;
+  const g = board.querySelector("#rotOverlay");
+  if(!g) return;
+
+  const tok = rotToken();
+  if(!tok){ g.innerHTML = ""; return; }
+
+  const r    = 30;
+  const RING = r*2.2;
+  const f    = (tok.facing === 0 || tok.facing) ? tok.facing : null;
+  const vb   = (board.getAttribute("viewBox") || "0 0 400 400").split(" ").map(Number);
+  const cx = tok.x, cy = tok.y;
+
+  // Rastermarken alle 45 Grad
+  let ticks = "";
+  for(let a = 0; a < 360; a += 45){
+    const ar = a*Math.PI/180;
+    const ux = Math.sin(ar), uy = -Math.cos(ar);
+    ticks += `<line x1="${(cx+ux*(RING-5)).toFixed(1)}" y1="${(cy+uy*(RING-5)).toFixed(1)}"
+                    x2="${(cx+ux*(RING+5)).toFixed(1)}" y2="${(cy+uy*(RING+5)).toFixed(1)}"
+                    stroke="#1a6acb" stroke-width="2" opacity="0.55"/>`;
+  }
+
+  // Griff auf der aktuellen Blickrichtung
+  let griff = "";
+  if(f != null){
+    const ar = f*Math.PI/180;
+    const ux = Math.sin(ar), uy = -Math.cos(ar);
+    griff = `<line x1="${cx}" y1="${cy}" x2="${(cx+ux*RING).toFixed(1)}" y2="${(cy+uy*RING).toFixed(1)}"
+                   stroke="#1a6acb" stroke-width="3"/>
+             <circle cx="${(cx+ux*RING).toFixed(1)}" cy="${(cy+uy*RING).toFixed(1)}" r="11"
+                   fill="#1a6acb" stroke="#fff" stroke-width="2.5"/>`;
+  }
+
+  // Ball links / rechts, relativ zur Blickrichtung
+  const bfr = (f == null ? 0 : f)*Math.PI/180;
+  const re  = [Math.cos(bfr), Math.sin(bfr)];
+  let knoepfe = "";
+  [["l",-1],["r",1]].forEach(([seite, sgn]) => {
+    const bx = cx + re[0]*sgn*r*1.55, by = cy + re[1]*sgn*r*1.55;
+    const an = tok.ball === seite;
+    knoepfe += `<g data-rot="ball-${seite}" style="cursor:pointer">
+        <circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="14"
+                fill="${an ? "#1a6acb" : "#ffffff"}" stroke="#1a6acb" stroke-width="2"/>
+        <circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="5"
+                fill="${an ? "#ffffff" : "#1a6acb"}"/></g>`;
+  });
+
+  // Anspieler nur beim Angreifer
+  let anspieler = "";
+  if(tok.kind === "att"){
+    const dx = Math.sin(bfr), dy = -Math.cos(bfr);
+    const ax = cx - dx*r*1.75, ay = cy - dy*r*1.75;
+    const an = !!tok.anspieler;
+    anspieler = `<g data-rot="anspieler" style="cursor:pointer">
+        <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="14"
+                fill="${an ? "#1a6acb" : "#ffffff"}" stroke="#1a6acb" stroke-width="2"/>
+        <polygon points="${ax.toFixed(1)},${(ay-6).toFixed(1)} ${(ax+6).toFixed(1)},${(ay+5).toFixed(1)} ${(ax-6).toFixed(1)},${(ay+5).toFixed(1)}"
+                fill="${an ? "#ffffff" : "#1a6acb"}"/></g>`;
+  }
+
+  const anzeige = f == null ? "neutral" : f + "°";
+
+  g.innerHTML =
+    `<rect data-rot="dim" x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}"
+           fill="rgba(20,30,45,0.13)"/>
+     <circle cx="${cx}" cy="${cy}" r="${RING}" fill="none" stroke="#1a6acb"
+             stroke-width="2" stroke-dasharray="5 5" opacity="0.8"/>
+     ${ticks}${griff}
+     <circle data-rot="neutral" cx="${cx}" cy="${cy}" r="${r*0.8}"
+             fill="rgba(255,255,255,0.01)" style="cursor:pointer"/>
+     ${knoepfe}${anspieler}
+     <text x="${cx}" y="${(cy + RING + 26).toFixed(1)}" text-anchor="middle"
+           font-size="15" font-weight="600" fill="#1a6acb"
+           style="paint-order:stroke" stroke="#fff" stroke-width="3">${anzeige}</text>`;
+}
+
+function rotWinkelAus(px, py, tok){
+  const dx = px - tok.x, dy = py - tok.y;
+  const d  = Math.sqrt(dx*dx + dy*dy);
+  let a = Math.atan2(dx, -dy)*180/Math.PI;
+  if(a < 0) a += 360;
+  const step = d < 54 ? 45 : 5;            // nah am Token grob, weiter aussen fein
+  a = (Math.round(a/step)*step) % 360;
+  return { a, d };
+}
+
+function rotPointerDown(ev){
+  if(!rotState) return;
+  const tok = rotToken();
+  if(!tok){ rotClose(); return; }
+  ev.stopPropagation();
+  ev.preventDefault();
+
+  const ziel = ev.target.closest ? ev.target.closest("[data-rot]") : null;
+  const rolle = ziel ? ziel.getAttribute("data-rot") : null;
+
+  if(rolle === "ball-l" || rolle === "ball-r"){
+    const seite = rolle.slice(-1);
+    pushHistory();
+    tok.ball = (tok.ball === seite) ? null : seite;
+    rotRefreshToken(tok); drawRotOverlay();
+    return;
+  }
+  if(rolle === "anspieler"){
+    pushHistory();
+    tok.anspieler = !tok.anspieler;
+    rotRefreshToken(tok); drawRotOverlay();
+    return;
+  }
+  if(rolle === "neutral"){
+    pushHistory();
+    tok.facing = null;
+    rotRefreshToken(tok); drawRotOverlay();
+    return;
+  }
+
+  const pt = clientToSvg(ev.clientX, ev.clientY);
+  const { a, d } = rotWinkelAus(pt.x, pt.y, tok);
+  if(d > 30*4.4){ rotClose(); return; }     // Tipp weit ausserhalb schliesst
+
+  pushHistory();
+  rotState.dragging = true;
+  tok.facing = a;
+  rotRefreshToken(tok); drawRotOverlay();
+}
+
+function rotPointerMove(ev){
+  if(!rotState || !rotState.dragging) return;
+  const tok = rotToken();
+  if(!tok) return;
+  ev.preventDefault();
+  const pt = clientToSvg(ev.clientX, ev.clientY);
+  const { a } = rotWinkelAus(pt.x, pt.y, tok);
+  if(a !== tok.facing){
+    tok.facing = a;
+    rotRefreshToken(tok);
+    drawRotOverlay();
+  }
+}
+
+function rotPointerUp(){
+  if(rotState) rotState.dragging = false;
+}
+
 function onTokenPointerDown(ev){
   if(STATE.mode !== "select") return;
   ev.stopPropagation();
@@ -1248,6 +1840,24 @@ function onTokenPointerDown(ev){
   }
   lastTapInfo = { tokenId: id, time: now };
 
+  // Langer Druck oeffnet das Blickrichtungs-Overlay
+  if(holdTimer){ clearTimeout(holdTimer); holdTimer = null; }
+  if(rotFaehig(tok)){
+    holdTimer = setTimeout(function(){
+      holdTimer = null;
+      if(!dragInfo || dragInfo.tokenId !== id || dragInfo.moved) return;
+      const e2 = dragInfo.el;
+      try{ e2.releasePointerCapture(dragInfo.pointerId); }catch(e){}
+      e2.classList.remove("dragging");
+      e2.removeEventListener("pointermove", onTokenPointerMove);
+      e2.removeEventListener("pointerup", onTokenPointerUp);
+      e2.removeEventListener("pointercancel", onTokenPointerUp);
+      hideTrashZone();
+      dragInfo = null;
+      rotOpen(tok);
+    }, 500);
+  }
+
   pushHistory();
   const pt = clientToSvg(ev.clientX, ev.clientY);
   dragInfo = { tokenId:id, offsetX:pt.x - tok.x, offsetY:pt.y - tok.y,
@@ -1264,6 +1874,7 @@ function onTokenPointerMove(ev){
   if(!dragInfo || ev.pointerId !== dragInfo.pointerId) return;
   const dx = Math.abs(ev.clientX - (dragInfo.startX||ev.clientX));
   const dy = Math.abs(ev.clientY - (dragInfo.startY||ev.clientY));
+  if(holdTimer && dx+dy > 10){ clearTimeout(holdTimer); holdTimer = null; }
   if(dx+dy > 3){
     if(!dragInfo.moved) showTrashZone(); // erst beim echten Bewegen einblenden
     dragInfo.moved = true;
@@ -1281,6 +1892,8 @@ function onTokenPointerMove(ev){
 
 function onTokenPointerUp(ev){
   if(!dragInfo || ev.pointerId !== dragInfo.pointerId) return;
+  if(holdTimer){ clearTimeout(holdTimer); holdTimer = null; }
+  const warNeu = dragInfo.isNew;
   const tok = STATE.tokens.find(t => t.id === dragInfo.tokenId);
   const el = dragInfo.el;
   el.classList.remove("dragging");
@@ -1301,8 +1914,11 @@ function onTokenPointerUp(ev){
   if(tok && (tok.x < -30 || tok.x > w+30 || tok.y < -30 || tok.y > h+30)){
     STATE.tokens = STATE.tokens.filter(t => t.id !== tok.id);
     renderBoard();
+    dragInfo = null;
+    return;
   }
   dragInfo = null;
+  if(warNeu && tok && rotFaehig(tok)) rotOpen(tok);
 }
 
 /* ============ Mülltonne zum Löschen via Drag ============ */
@@ -1493,7 +2109,8 @@ function setMode(m){
   if(STATE.mode === "text" && m !== "text") finishTextEditing();
   STATE.mode = m;
   document.getElementById("modeSelect").setAttribute("aria-pressed", m==="select");
-  ["penRun","penRunDef","penPass","penShot","penErase","penFree","penText"].forEach(id=>{
+  ["penRun","penRunDef","penPass","penShot","penBallRun","penPrell","penSperre",
+   "penErase","penFree","penText"].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.setAttribute("aria-pressed","false");
   });
@@ -1501,10 +2118,20 @@ function setMode(m){
   if(m==="rund")  document.getElementById("penRunDef").setAttribute("aria-pressed","true");
   if(m==="pass")  document.getElementById("penPass").setAttribute("aria-pressed","true");
   if(m==="shot")  document.getElementById("penShot").setAttribute("aria-pressed","true");
+  if(m==="ballrun") document.getElementById("penBallRun").setAttribute("aria-pressed","true");
+  if(m==="prell")   document.getElementById("penPrell").setAttribute("aria-pressed","true");
+  if(m==="sperre")  document.getElementById("penSperre").setAttribute("aria-pressed","true");
   if(m==="erase") document.getElementById("penErase").setAttribute("aria-pressed","true");
   if(m==="free")  document.getElementById("penFree").setAttribute("aria-pressed","true");
   if(m==="text")  document.getElementById("penText").setAttribute("aria-pressed","true");
   // Paletten schließen, wenn Modus ein anderer ist
+  const bf = document.getElementById("penFinte");
+  if(bf){
+    const geht = (typeof FINTE_MODI !== "undefined") && FINTE_MODI.indexOf(m) !== -1;
+    bf.style.opacity = geht ? "" : "0.35";
+    bf.title = geht ? "Täuschung: Querstrich auf die nächste Linie"
+                    : "Täuschung — nur für Pass und Torwurf";
+  }
   if(m !== "free") document.getElementById("penPalette").classList.remove("show");
   if(m !== "text") document.getElementById("textPalette").classList.remove("show");
   // Board-Marker fürs Text-Modus-CSS (Rahmen/Griffe sichtbar)
@@ -1656,12 +2283,9 @@ document.getElementById("board").addEventListener("pointerdown",(ev)=>{
   ev.preventDefault();
   pushHistory();   // Snapshot vor neuer Linie
   const pt = clientToSvg(ev.clientX, ev.clientY);
-  const color = STATE.mode === "pass" ? "var(--pen-pass)"
-              : STATE.mode === "shot" ? "var(--pen-shot)"
-              : STATE.mode === "rund" ? "var(--pen-rund)"
-              : STATE.mode === "free" ? FREE_COLOR
-              : "var(--pen-run)";
+  const color = STATE.mode === "free" ? FREE_COLOR : lineStil(STATE.mode).color;
   const line = { id: STATE.nextId++, kind: STATE.mode, color,
+                 finte: (STATE.finte && FINTE_MODI.indexOf(STATE.mode) !== -1) ? true : undefined,
                  width: (STATE.mode === "free") ? FREE_WIDTH : undefined,
                  path: `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}` };
   STATE.lines.push(line);
@@ -1689,7 +2313,7 @@ document.getElementById("board").addEventListener("pointermove",(ev)=>{
   const line = STATE.lines.find(l => l.id === drawInfo.lineId);
   if(!line) return;
   line.path += ` L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
-  const pathEl = document.querySelector(`#lines [data-id="${line.id}"]`);
+  const pathEl = document.querySelector(`#lines .tb-line-main[data-id="${line.id}"]`);
   if(pathEl) pathEl.setAttribute("d", line.path);
 });
 
@@ -1709,8 +2333,8 @@ document.getElementById("board").addEventListener("pointerup",(ev)=>{
   const line = STATE.lines.find(l => l.id === drawInfo.lineId);
   if(line && !line.path.includes(" L ")){
     STATE.lines = STATE.lines.filter(l => l.id !== line.id);
-    renderBoard();
   }
+  renderBoard();
   drawInfo = null;
 });
 
@@ -1720,8 +2344,10 @@ function eraseLineAt(clientX, clientY){
   const elements = document.elementsFromPoint ? document.elementsFromPoint(clientX, clientY) : [document.elementFromPoint(clientX, clientY)];
   const toRemove = new Set();
   for(const el of elements){
-    if(el && el.tagName === "path" && el.parentElement && el.parentElement.id === "lines"){
-      const lid = +el.getAttribute("data-id");
+    if(!el || !el.closest) continue;
+    const grp = el.closest("#lines > [data-id]");
+    if(grp){
+      const lid = +grp.getAttribute("data-id");
       if(lid) toRemove.add(lid);
     }
   }
@@ -2765,8 +3391,11 @@ function saveCurrent(){
   const k = {
     id: "k_" + Date.now() + "_" + Math.floor(Math.random()*9999),
     name, schnitt: STATE.schnitt,
-    tokens: STATE.tokens.map(t=>({kind:t.kind, label:t.label, labelMode:t.labelMode, x:t.x, y:t.y})),
-    lines:  STATE.lines.map(l=>({kind:l.kind, color:l.color, path:l.path, width:l.width})),
+    symbolset: STATE.symbolset,
+    tokens: STATE.tokens.map(t=>({kind:t.kind, label:t.label, labelMode:t.labelMode, x:t.x, y:t.y,
+            rotation:t.rotation, facing:t.facing, ball:t.ball, anspieler:t.anspieler,
+            color:t.color, colorDark:t.colorDark})),
+    lines:  STATE.lines.map(l=>({kind:l.kind, color:l.color, path:l.path, width:l.width, finte:l.finte})),
     texts:  STATE.texts.map(x=>({text:x.text, x:x.x, y:x.y, w:x.w, h:x.h, size:x.size})),
     gespeichert_am: new Date().toISOString(),
     plan_datum: null, rating: 0, kommentar: ""
@@ -2935,7 +3564,7 @@ window.ladeKonstellation = function(id){
   const list = ladeAlle();
   const k = list.find(x=>x.id===id); if(!k) return;
   if((STATE.tokens.length || STATE.lines.length || STATE.texts.length) && !confirm("Aktuelles Board wird ersetzt. Fortfahren?")) return;
-  STATE.schnitt = k.schnitt;
+  STATE.schnitt = k.schnitt; if(k.symbolset) STATE.symbolset = k.symbolset;
   document.getElementById("selAusschnitt").value = k.schnitt;
   STATE.tokens = k.tokens.map(t => Object.assign({}, t, {id:STATE.nextId++}));
   STATE.lines  = k.lines.map(l => Object.assign({}, l, {id:STATE.nextId++}));
@@ -3002,7 +3631,7 @@ window.druckeKonst = function(id){
   const list = ladeAlle();
   const k = list.find(x=>x.id===id); if(!k) return;
   const savedTokens = STATE.tokens, savedLines = STATE.lines, savedTexts = STATE.texts, savedSchnitt = STATE.schnitt;
-  STATE.schnitt = k.schnitt;
+  STATE.schnitt = k.schnitt; if(k.symbolset) STATE.symbolset = k.symbolset;
   STATE.tokens = k.tokens.map(t => Object.assign({}, t, {id:STATE.nextId++}));
   STATE.lines  = k.lines.map(l => Object.assign({}, l, {id:STATE.nextId++}));
   STATE.texts  = (k.texts || []).map(x => Object.assign({}, x, {id:STATE.nextId++}));
@@ -3144,9 +3773,10 @@ function fuehreModulExportAus(){
 function baueModulSvg(k){
   // Konstellation temporär in STATE laden, rendern, klonen, restaurieren
   const saved = {
-    tokens: STATE.tokens, lines: STATE.lines, texts: STATE.texts, schnitt: STATE.schnitt
+    tokens: STATE.tokens, lines: STATE.lines, texts: STATE.texts, schnitt: STATE.schnitt,
+    symbolset: STATE.symbolset
   };
-  STATE.schnitt = k.schnitt;
+  STATE.schnitt = k.schnitt; if(k.symbolset) STATE.symbolset = k.symbolset;
   STATE.tokens = k.tokens.map(t => Object.assign({}, t, {id: STATE.nextId++}));
   STATE.lines  = k.lines.map(l => Object.assign({}, l, {id: STATE.nextId++}));
   STATE.texts  = (k.texts || []).map(x => Object.assign({}, x, {id: STATE.nextId++}));
@@ -3376,5 +4006,68 @@ setMode("select");
     <path d="M14 11v6"/>
   </svg>
 </div>
+<script>
+/* Normmodus: Initialisierung und Umschalter */
+(function(){
+  try{
+    const g = localStorage.getItem("tb_symbolset");
+    if(g === "norm" || g === "farbe") STATE.symbolset = g;
+  }catch(e){}
+
+  let _letzterSatz = null;
+  function sync(){
+    if(_letzterSatz !== STATE.symbolset){
+      _letzterSatz = STATE.symbolset;
+      if(typeof renderPenIcons === "function") renderPenIcons();
+    }
+    const b = document.getElementById("btnNormToggle");
+    const t = document.getElementById("normToggleText");
+    const an = (STATE.symbolset === "norm");
+    if(b) b.setAttribute("aria-pressed", an ? "true" : "false");
+    if(b) b.classList.toggle("active", an);
+    if(t) t.textContent = an ? "Norm" : "Farbe";
+  }
+
+  const btn = document.getElementById("btnNormToggle");
+  if(btn){
+    btn.addEventListener("click", function(){
+      STATE.symbolset = (STATE.symbolset === "norm") ? "farbe" : "norm";
+      try{ localStorage.setItem("tb_symbolset", STATE.symbolset); }catch(e){}
+      sync();
+      if(typeof renderBank  === "function") renderBank();
+      if(typeof renderBoard === "function") renderBoard();
+    });
+  }
+
+  [["penBallRun","ballrun"],["penPrell","prell"],["penSperre","sperre"]].forEach(function(pair){
+    const b = document.getElementById(pair[0]);
+    if(b) b.addEventListener("click", function(){ setMode(pair[1]); });
+  });
+  const bFinte = document.getElementById("penFinte");
+  if(bFinte){
+    bFinte.addEventListener("click", function(){
+      STATE.finte = !STATE.finte;
+      bFinte.setAttribute("aria-pressed", STATE.finte ? "true" : "false");
+    });
+  }
+
+  const board = document.getElementById("board");
+  if(board){
+    board.addEventListener("pointerdown", rotPointerDown, true);
+    board.addEventListener("pointermove", rotPointerMove, true);
+    board.addEventListener("pointerup",   rotPointerUp,   true);
+    board.addEventListener("pointercancel", rotPointerUp, true);
+  }
+
+  sync();
+  if(typeof renderPenIcons === "function") renderPenIcons();
+  if(STATE.symbolset === "norm"){
+    if(typeof renderBank  === "function") renderBank();
+    if(typeof renderBoard === "function") renderBoard();
+  }
+  // Panel kann den Modus per geladener Konstellation aendern -> Haken nachziehen
+  document.addEventListener("click", function(){ setTimeout(sync, 60); }, true);
+})();
+</script>
 </body>
 </html>
