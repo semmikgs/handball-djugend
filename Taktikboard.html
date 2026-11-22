@@ -1408,13 +1408,13 @@ function lineStil(kind){
   const norm = (STATE.symbolset === "norm");
   const SW = "#111";
   switch(kind){
-    case "rund":    return { color:"var(--pen-rund)", width:4, pfeil:true };
+    case "rund":    return { color: norm ? SW : "var(--pen-rund)", width:4, pfeil:true };
     case "pass":    return { color: norm ? SW : "var(--pen-pass)", width:4, dash:"12 8", pfeil:true };
     case "ballrun": return { color: norm ? SW : "var(--pen-run)",  width:3.5, dash:"5 4", pfeil:true };
     case "prell":   return { color: norm ? SW : "var(--pen-run)",  width:3.5, pfeil:true, welle:true };
     case "shot":    return { color: norm ? SW : "var(--pen-shot)", width:7, pfeil:true, doppel:true };
     case "sperre":  return { color:"var(--pen-sperre)", width:4.5, riegel:true };
-    default:        return { color:"var(--pen-run)", width:4, pfeil:true };   // run
+    default:        return { color: norm ? SW : "var(--pen-run)", width:4, pfeil:true };   // run
   }
 }
 
@@ -1750,12 +1750,12 @@ function legendeBauen(){
 
   /* ---------- Bewegungen ---------- */
   teile.push(legAbschnitt("Bewegungen und Aktionen",
-    "Jede Linienart ist auch ohne Farbe eindeutig – allein an der Strichart. Die beiden Laufwege bleiben deshalb als einzige farbig, denn die Norm unterscheidet Angriff und Abwehr hier über die Farbe.",
+    "Jede Linienart ist an ihrer Strichart zu erkennen, auch ohne Farbe. Eine Ausnahme gibt es: Angriffs- und Abwehr-Laufweg sind in der Norm dieselbe durchgezogene Linie – wer läuft, sagt dort das Spielersymbol am Anfang der Linie. Im Farbmodus trennt sie Orange und Blau.",
     [
       legZeile(L("run"), "Laufweg",
         "Durchgezogen. Ein Spieler läuft ohne Ball – Freilaufen, Kreuzen, Sperren anlaufen, Rückzug."),
       legZeile(L("rund"), "Laufweg der Abwehr",
-        "Dieselbe Linie in Blau. So bleiben Angriffs- und Abwehrbewegungen in einer vollen Grafik auseinanderzuhalten."),
+        "In der Norm dieselbe Linie wie beim Angriff, im Farbmodus blau. Bei dichten Grafiken hilft der Farbmodus, Angriffs- und Abwehrbewegungen auseinanderzuhalten."),
       legZeile(L("pass"), "Pass",
         "Lange Striche. Der Flugweg des Balls von einem Spieler zum nächsten. Die Linie beschreibt den Ball, nicht den Werfer."),
       legZeile(L("ballrun"), "Laufweg mit Ball",
